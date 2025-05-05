@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,21 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				bowlsGreen: {
+					DEFAULT: '#0f766e',
+					light: '#14b8a6',
+					dark: '#0f5259'
+				},
+				bowlsGold: {
+					DEFAULT: '#ca8a04',
+					light: '#eab308',
+					dark: '#854d0e'
+				},
+				bowlsNavy: {
+					DEFAULT: '#0f172a',
+					light: '#1e293b',
+					dark: '#020617'
 				}
 			},
 			borderRadius: {
