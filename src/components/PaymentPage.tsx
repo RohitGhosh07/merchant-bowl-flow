@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { appendToSheet, formatTeamData } from "@/utils/googleSheets";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
+import { CreditCard, Check, LoaderCircle } from "lucide-react";
 
 interface PaymentPageProps {
   formData: FormData;
@@ -68,8 +70,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Add registration data to Supabase
-      for (let i = 0; i < formData.teams.length; i++) {
-        const team = formData.teams[i];
+      const registrationPromises = formData.teams.map(async (team, i) => {
         const teamNumber = `Team ${i + 1}`;
         
         try {
@@ -84,16 +85,24 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
           
           if (error) {
             console.error("Error inserting registration data:", error);
-            toast({
-              title: "Database Error",
-              description: "Could not save registration data to database.",
-              variant: "destructive",
-            });
+            throw error;
           }
+          
+          return true;
         } catch (error) {
           console.error("Error with Supabase:", error);
+          throw error;
         }
-      }
+      });
+      
+      // Wait for all registrations to complete
+      await Promise.all(registrationPromises);
+      
+      // Show success toast for database registration
+      toast({
+        title: "Registration Saved",
+        description: "Your registration data has been saved to the database.",
+      });
 
       // Google Sheets integration
       if (sheetsIntegration.enabled && sheetsIntegration.apiKey && sheetsIntegration.spreadsheetId) {
@@ -175,7 +184,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div>
       <div className="mb-8">
         <h2 className="text-2xl font-serif font-bold text-bowlsNavy">
           Payment
@@ -185,13 +194,13 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
         </p>
       </div>
 
-      <Card className="bg-white shadow-xl border-bowlsGreen mb-6">
-        <CardHeader className="bg-bowlsGreen text-white rounded-t-md">
+      <Card className="bg-white shadow-md border-none mb-6">
+        <CardHeader className="bg-gradient-to-r from-bowlsNavy to-bowlsNavy-dark text-white rounded-t-lg">
           <CardTitle>Payment Summary</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
               <div>
                 <p className="text-sm text-gray-500">Company Name</p>
                 <p className="font-medium">{formData.companyName}</p>
@@ -202,7 +211,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div>
                 <p className="text-sm text-gray-500">Registration Fee</p>
                 <p className="font-medium">₹8,850 per team</p>
@@ -216,9 +225,12 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
         </CardContent>
       </Card>
 
-      <Card className="bg-white shadow-xl border-bowlsGold mb-6">
-        <CardHeader className="bg-bowlsGold text-white rounded-t-md">
-          <CardTitle>Payment Method</CardTitle>
+      <Card className="bg-white shadow-md border-none mb-6">
+        <CardHeader className="bg-gradient-to-r from-bowlsGold to-bowlsGold-dark text-white rounded-t-lg">
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard size={20} />
+            <span>Payment Method</span>
+          </CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
           <Tabs defaultValue="card" onValueChange={(value) => setPaymentMethod(value as any)}>
@@ -228,7 +240,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
               <TabsTrigger value="netbanking">Net Banking</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="card" className="mt-4">
+            <TabsContent value="card" className="mt-6">
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="cardNumber">Card Number</Label>
@@ -238,7 +250,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
                     value={cardDetails.cardNumber}
                     onChange={handleCardInputChange}
                     placeholder="1234 5678 9012 3456"
-                    className="mt-1"
+                    className="mt-1.5"
                   />
                 </div>
 
@@ -250,7 +262,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
                     value={cardDetails.cardHolder}
                     onChange={handleCardInputChange}
                     placeholder="John Doe"
-                    className="mt-1"
+                    className="mt-1.5"
                   />
                 </div>
 
@@ -263,7 +275,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
                       value={cardDetails.expiryDate}
                       onChange={handleCardInputChange}
                       placeholder="MM/YY"
-                      className="mt-1"
+                      className="mt-1.5"
                     />
                   </div>
                   <div>
@@ -275,12 +287,12 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
                       onChange={handleCardInputChange}
                       placeholder="123"
                       type="password"
-                      className="mt-1"
+                      className="mt-1.5"
                     />
                   </div>
                 </div>
 
-                <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200 text-sm text-gray-700">
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 text-sm text-gray-700">
                   <p className="font-medium">Test Mode Notice</p>
                   <p className="mt-1">
                     This is a test payment gateway. No actual payment will be processed.
@@ -290,17 +302,17 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
               </div>
             </TabsContent>
 
-            <TabsContent value="upi" className="mt-4">
+            <TabsContent value="upi" className="mt-6">
               <div className="text-center py-6">
-                <div className="bg-gray-100 rounded-md p-6 inline-block mx-auto mb-4">
-                  <div className="text-2xl font-mono bg-white p-3 rounded border">
+                <div className="bg-gray-100 rounded-lg p-6 inline-block mx-auto mb-4">
+                  <div className="text-2xl font-mono bg-white p-4 rounded-md border">
                     rcgc.tournament@ybl
                   </div>
                 </div>
                 <p className="text-gray-600">
                   Scan the QR code or enter the UPI ID in your payment app to make the payment.
                 </p>
-                <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200 text-sm text-gray-700 mt-4">
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 text-sm text-gray-700 mt-4">
                   <p className="font-medium">Test Mode Notice</p>
                   <p className="mt-1">
                     This is a test UPI ID. No actual payment will be processed.
@@ -309,7 +321,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
               </div>
             </TabsContent>
 
-            <TabsContent value="netbanking" className="mt-4">
+            <TabsContent value="netbanking" className="mt-6">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                 <div className="border rounded-md p-3 text-center hover:bg-gray-50 cursor-pointer">
                   <p className="font-medium">SBI</p>
@@ -331,7 +343,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
                 </div>
               </div>
 
-              <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200 text-sm text-gray-700">
+              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 text-sm text-gray-700">
                 <p className="font-medium">Test Mode Notice</p>
                 <p className="mt-1">
                   This is a test net banking interface. No actual payment will be processed.
@@ -349,7 +361,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
               value={webhook}
               onChange={handleWebhookChange}
               placeholder="https://hooks.zapier.com/..."
-              className="mt-1"
+              className="mt-1.5"
             />
             <p className="text-xs text-gray-500 mt-1">
               Enter your Zapier webhook URL to integrate with WhatsApp, Email notifications.
@@ -379,7 +391,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
                         value={sheetsIntegration.apiKey}
                         onChange={handleSheetsChange}
                         placeholder="AIzaSyB..."
-                        className="mt-1"
+                        className="mt-1.5"
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         Enter your Google Cloud API key with Google Sheets API enabled.
@@ -394,7 +406,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
                         value={sheetsIntegration.spreadsheetId}
                         onChange={handleSheetsChange}
                         placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
-                        className="mt-1"
+                        className="mt-1.5"
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         The ID of your Google Sheet (found in the URL).
@@ -409,21 +421,11 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
                         value={sheetsIntegration.sheetName}
                         onChange={handleSheetsChange}
                         placeholder="Sheet1"
-                        className="mt-1"
+                        className="mt-1.5"
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         The name of the specific sheet tab to write to (defaults to "Sheet1").
                       </p>
-                    </div>
-
-                    <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200 text-sm text-gray-700">
-                      <p className="font-medium">Google Sheets API Setup</p>
-                      <ol className="list-decimal list-inside mt-1 space-y-1">
-                        <li>Create a Google Cloud project at <span className="font-mono">console.cloud.google.com</span></li>
-                        <li>Enable the Google Sheets API</li>
-                        <li>Create an API key under Credentials</li>
-                        <li>Share your Google Sheet with the service account email</li>
-                      </ol>
                     </div>
                   </div>
                 )}
@@ -435,9 +437,19 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
           <Button 
             onClick={processPayment} 
             disabled={loading}
-            className="bg-bowlsGreen hover:bg-bowlsGreen-dark"
+            className="bg-bowlsGreen hover:bg-bowlsGreen-dark flex items-center gap-2"
           >
-            {loading ? "Processing..." : `Pay ₹${formData.totalAmount}`}
+            {loading ? (
+              <>
+                <LoaderCircle size={18} className="animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <>
+                <Check size={18} />
+                <span>Pay ₹{formData.totalAmount}</span>
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>

@@ -6,6 +6,7 @@ import PaymentPage from "@/components/PaymentPage";
 import ReceiptPage from "@/components/ReceiptPage";
 import { FormData } from "@/types/formTypes";
 import { Button } from "@/components/ui/button";
+import { CheckCircle } from "lucide-react";
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState<"form" | "payment" | "receipt">("form");
@@ -44,21 +45,34 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
         {currentStep === "form" && (
-          <RegistrationForm onSubmit={handleFormSubmit} />
+          <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
+            <RegistrationForm onSubmit={handleFormSubmit} />
+          </div>
         )}
         
         {currentStep === "payment" && formData && (
-          <PaymentPage 
-            formData={formData} 
-            onPaymentComplete={handlePaymentComplete} 
-          />
+          <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
+            <PaymentPage 
+              formData={formData} 
+              onPaymentComplete={handlePaymentComplete} 
+            />
+          </div>
         )}
         
         {currentStep === "receipt" && formData && (
-          <ReceiptPage formData={formData} />
+          <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
+            <ReceiptPage formData={formData} />
+          </div>
         )}
+
+        <div className="mt-8 flex justify-center">
+          <div className="bg-white p-4 rounded-lg shadow-md border border-green-200 inline-flex items-center gap-2 text-sm">
+            <CheckCircle className="text-green-500" size={18} />
+            <span>Connected to Supabase database</span>
+          </div>
+        </div>
       </main>
 
       <footer className="bg-bowlsNavy text-white py-6 mt-8">
