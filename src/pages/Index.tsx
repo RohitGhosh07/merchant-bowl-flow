@@ -1,9 +1,11 @@
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import RegistrationForm from "@/components/RegistrationForm";
 import PaymentPage from "@/components/PaymentPage";
 import ReceiptPage from "@/components/ReceiptPage";
 import { FormData } from "@/types/formTypes";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState<"form" | "payment" | "receipt">("form");
@@ -28,9 +30,16 @@ const Index = () => {
             <h1 className="text-2xl md:text-3xl font-serif font-bold text-center md:text-left mb-2 md:mb-0">
               37th RCGC Merchants Cup
             </h1>
-            <h2 className="text-lg md:text-xl font-medium text-bowlsGold-light">
-              Lawn Bowls Tournament 2024-25
-            </h2>
+            <div className="flex items-center gap-4">
+              <h2 className="text-lg md:text-xl font-medium text-bowlsGold-light">
+                Lawn Bowls Tournament 2024-25
+              </h2>
+              <Link to="/registrations">
+                <Button variant="outline" className="bg-transparent border-white hover:bg-white/10 text-white">
+                  View Registrations
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

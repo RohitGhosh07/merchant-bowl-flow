@@ -22,3 +22,10 @@ export interface FormData {
   numTeams: number;
   totalAmount: number;
 }
+
+export interface GoogleSheetsIntegration {
+  enabled: boolean;
+  apiKey: string;
+  spreadsheetId: string;
+  sheetName: string;
+}

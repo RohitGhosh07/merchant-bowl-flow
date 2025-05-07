@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { FormData } from "@/types/formTypes";
+import { FormData, GoogleSheetsIntegration } from "@/types/formTypes";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { appendToSheet, formatTeamData } from "@/utils/googleSheets";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface PaymentPageProps {
   formData: FormData;
@@ -18,6 +21,13 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"card" | "upi" | "netbanking">("card");
   const [webhook, setWebhook] = useState<string>("");
+
+  const [sheetsIntegration, setSheetsIntegration] = useState<GoogleSheetsIntegration>({
+    enabled: false,
+    apiKey: "",
+    spreadsheetId: "",
+    sheetName: "Sheet1"
+  });
 
   const [cardDetails, setCardDetails] = useState({
     cardNumber: "",
@@ -35,6 +45,15 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
     setWebhook(e.target.value);
   };
 
+  const handleSheetsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSheetsIntegration({ ...sheetsIntegration, [name]: value });
+  };
+
+  const handleSheetsToggle = (checked: boolean) => {
+    setSheetsIntegration({ ...sheetsIntegration, enabled: checked });
+  };
+
   const processPayment = async () => {
     setLoading(true);
     
@@ -47,6 +66,41 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
       
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Google Sheets integration
+      if (sheetsIntegration.enabled && sheetsIntegration.apiKey && sheetsIntegration.spreadsheetId) {
+        try {
+          const rows = formatTeamData(formData);
+          const success = await appendToSheet(
+            {
+              apiKey: sheetsIntegration.apiKey,
+              spreadsheetId: sheetsIntegration.spreadsheetId,
+              sheetName: sheetsIntegration.sheetName || "Sheet1"
+            }, 
+            rows
+          );
+          
+          if (success) {
+            toast({
+              title: "Google Sheets Updated",
+              description: "Your registration data has been saved to Google Sheets.",
+            });
+          } else {
+            toast({
+              title: "Google Sheets Error",
+              description: "Could not save data to Google Sheets. Check console for details.",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error("Error with Google Sheets integration:", error);
+          toast({
+            title: "Google Sheets Error",
+            description: "There was an error with the Google Sheets integration.",
+            variant: "destructive",
+          });
+        }
+      }
       
       // If webhook URL is provided, trigger the Zapier webhook
       if (webhook) {
@@ -134,7 +188,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
         </CardContent>
       </Card>
 
-      <Card className="bg-white shadow-xl border-bowlsGold">
+      <Card className="bg-white shadow-xl border-bowlsGold mb-6">
         <CardHeader className="bg-bowlsGold text-white rounded-t-md">
           <CardTitle>Payment Method</CardTitle>
         </CardHeader>
@@ -260,7 +314,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
 
           <div className="mt-6 border-t pt-4">
             <Label htmlFor="webhookUrl">
-              Zapier Webhook URL (Optional - for integration with WhatsApp/Email/Google Sheets)
+              Zapier Webhook URL (Optional - for integration with WhatsApp/Email)
             </Label>
             <Input
               id="webhookUrl"
@@ -270,9 +324,84 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
               className="mt-1"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Enter your Zapier webhook URL to integrate with WhatsApp, Email notifications, or Google Sheets.
+              Enter your Zapier webhook URL to integrate with WhatsApp, Email notifications.
             </p>
           </div>
+
+          <Accordion type="single" collapsible className="mt-6 border-t pt-4">
+            <AccordionItem value="sheets">
+              <AccordionTrigger className="flex items-center">
+                <div className="flex items-center gap-2">
+                  <Switch 
+                    checked={sheetsIntegration.enabled} 
+                    onCheckedChange={handleSheetsToggle}
+                    onClick={(e) => e.stopPropagation()} 
+                  />
+                  <span>Google Sheets Integration</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                {sheetsIntegration.enabled && (
+                  <div className="space-y-4 mt-4">
+                    <div>
+                      <Label htmlFor="apiKey">Google Sheets API Key</Label>
+                      <Input
+                        id="apiKey"
+                        name="apiKey"
+                        value={sheetsIntegration.apiKey}
+                        onChange={handleSheetsChange}
+                        placeholder="AIzaSyB..."
+                        className="mt-1"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Enter your Google Cloud API key with Google Sheets API enabled.
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="spreadsheetId">Spreadsheet ID</Label>
+                      <Input
+                        id="spreadsheetId"
+                        name="spreadsheetId"
+                        value={sheetsIntegration.spreadsheetId}
+                        onChange={handleSheetsChange}
+                        placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
+                        className="mt-1"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        The ID of your Google Sheet (found in the URL).
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="sheetName">Sheet Name (Optional)</Label>
+                      <Input
+                        id="sheetName"
+                        name="sheetName"
+                        value={sheetsIntegration.sheetName}
+                        onChange={handleSheetsChange}
+                        placeholder="Sheet1"
+                        className="mt-1"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        The name of the specific sheet tab to write to (defaults to "Sheet1").
+                      </p>
+                    </div>
+
+                    <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200 text-sm text-gray-700">
+                      <p className="font-medium">Google Sheets API Setup</p>
+                      <ol className="list-decimal list-inside mt-1 space-y-1">
+                        <li>Create a Google Cloud project at <span className="font-mono">console.cloud.google.com</span></li>
+                        <li>Enable the Google Sheets API</li>
+                        <li>Create an API key under Credentials</li>
+                        <li>Share your Google Sheet with the service account email</li>
+                      </ol>
+                    </div>
+                  </div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </CardContent>
         <CardFooter className="flex justify-end">
           <Button 
