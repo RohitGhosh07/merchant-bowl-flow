@@ -8,14 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, CheckIcon, Trash2, UserPlus } from "lucide-react";
+import { CalendarIcon, CheckIcon, Trash2, UserPlus, LoaderCircle } from "lucide-react";
 import ReCaptcha from "@/components/ReCaptcha";
 
 interface RegistrationFormProps {
   onSubmit: (data: FormData) => void;
+  isProcessing?: boolean;
 }
 
-const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
+const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormProps) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [captchaVerified, setCaptchaVerified] = useState(false);
@@ -208,26 +209,26 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="companyName" className="text-bowlsNavy font-medium">Company Name*</Label>
+              <Label htmlFor="companyName" className="text-gray-700 font-medium">Company Name*</Label>
               <Input
                 id="companyName"
                 name="companyName"
                 value={formData.companyName}
                 onChange={handleInputChange}
                 placeholder="Enter your company name"
-                className="mt-1.5 border-gray-300 focus:border-bowlsGreen focus:ring-bowlsGreen"
+                className="mt-1.5"
                 required
               />
             </div>
             <div>
-              <Label htmlFor="address" className="text-bowlsNavy font-medium">Company Address*</Label>
+              <Label htmlFor="address" className="text-gray-700 font-medium">Company Address*</Label>
               <Textarea
                 id="address"
                 name="address"
                 value={formData.address}
                 onChange={handleInputChange}
                 placeholder="Enter your company address"
-                className="mt-1.5 border-gray-300 focus:border-bowlsGreen focus:ring-bowlsGreen"
+                className="mt-1.5"
                 rows={3}
                 required
               />
@@ -238,9 +239,9 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
         return (
           <div className="space-y-6">
             {formData.teams.map((team, teamIndex) => (
-              <div key={teamIndex} className="bg-green-50 rounded-lg p-5 border border-green-100">
+              <div key={teamIndex} className="bg-slate-50 rounded-lg p-5 border border-slate-100">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-medium text-bowlsNavy">Team {teamIndex + 1}</h3>
+                  <h3 className="font-medium text-gray-700">Team {teamIndex + 1}</h3>
                   {formData.teams.length > 1 && (
                     <Button
                       variant="destructive"
@@ -257,7 +258,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                 <div className="grid gap-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor={`player1-name-${teamIndex}`} className="text-bowlsNavy">Player 1 Name*</Label>
+                      <Label htmlFor={`player1-name-${teamIndex}`} className="text-gray-700">Player 1 Name*</Label>
                       <Input
                         id={`player1-name-${teamIndex}`}
                         value={team.player1.name}
@@ -268,7 +269,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor={`player1-mobile-${teamIndex}`} className="text-bowlsNavy">Player 1 Mobile*</Label>
+                      <Label htmlFor={`player1-mobile-${teamIndex}`} className="text-gray-700">Player 1 Mobile*</Label>
                       <Input
                         id={`player1-mobile-${teamIndex}`}
                         value={team.player1.mobile}
@@ -282,7 +283,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor={`player2-name-${teamIndex}`} className="text-bowlsNavy">Player 2 Name*</Label>
+                      <Label htmlFor={`player2-name-${teamIndex}`} className="text-gray-700">Player 2 Name*</Label>
                       <Input
                         id={`player2-name-${teamIndex}`}
                         value={team.player2.name}
@@ -293,7 +294,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor={`player2-mobile-${teamIndex}`} className="text-bowlsNavy">Player 2 Mobile*</Label>
+                      <Label htmlFor={`player2-mobile-${teamIndex}`} className="text-gray-700">Player 2 Mobile*</Label>
                       <Input
                         id={`player2-mobile-${teamIndex}`}
                         value={team.player2.mobile}
@@ -307,7 +308,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor={`reserve-name-${teamIndex}`} className="text-bowlsNavy">Reserve Player Name (Optional)</Label>
+                      <Label htmlFor={`reserve-name-${teamIndex}`} className="text-gray-700">Reserve Player Name (Optional)</Label>
                       <Input
                         id={`reserve-name-${teamIndex}`}
                         value={team.reserve?.name || ""}
@@ -317,7 +318,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                       />
                     </div>
                     <div>
-                      <Label htmlFor={`reserve-mobile-${teamIndex}`} className="text-bowlsNavy">Reserve Player Mobile (Optional)</Label>
+                      <Label htmlFor={`reserve-mobile-${teamIndex}`} className="text-gray-700">Reserve Player Mobile (Optional)</Label>
                       <Input
                         id={`reserve-mobile-${teamIndex}`}
                         value={team.reserve?.mobile || ""}
@@ -335,18 +336,18 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
               <Button 
                 type="button" 
                 onClick={addTeam} 
-                className="bg-bowlsGreen hover:bg-bowlsGreen-dark flex items-center gap-1.5"
+                className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
               >
                 <UserPlus size={18} />
                 <span>Add Another Team</span>
               </Button>
             )}
 
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-              <p className="text-bowlsNavy text-sm">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+              <p className="text-gray-700 text-sm">
                 Registration Fee: <span className="font-bold">₹8,850</span> per team
               </p>
-              <p className="text-bowlsNavy font-bold mt-2">
+              <p className="text-gray-700 font-bold mt-2">
                 Total Amount: ₹{formData.totalAmount}
               </p>
             </div>
@@ -356,7 +357,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
         return (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="captainName" className="text-bowlsNavy font-medium">Captain's Name*</Label>
+              <Label htmlFor="captainName" className="text-gray-700 font-medium">Captain's Name*</Label>
               <Input
                 id="captainName"
                 name="captainName"
@@ -368,7 +369,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
               />
             </div>
             <div>
-              <Label htmlFor="designation" className="text-bowlsNavy font-medium">Designation*</Label>
+              <Label htmlFor="designation" className="text-gray-700 font-medium">Designation*</Label>
               <Input
                 id="designation"
                 name="designation"
@@ -380,7 +381,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
               />
             </div>
             <div>
-              <Label htmlFor="date" className="text-bowlsNavy font-medium">Date*</Label>
+              <Label htmlFor="date" className="text-gray-700 font-medium">Date*</Label>
               <div className="relative">
                 <Input
                   id="date"
@@ -395,7 +396,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
               </div>
             </div>
             <div>
-              <Label htmlFor="signature" className="text-bowlsNavy font-medium">Digital Signature (Optional)</Label>
+              <Label htmlFor="signature" className="text-gray-700 font-medium">Digital Signature (Optional)</Label>
               <Input
                 id="signature"
                 name="signature"
@@ -418,8 +419,8 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
       case 3:
         return (
           <div className="space-y-6">
-            <div className="bg-green-50 p-5 rounded-lg border border-green-100">
-              <h3 className="font-medium text-lg mb-3 text-bowlsNavy">Registration Summary</h3>
+            <div className="bg-slate-50 p-5 rounded-lg border border-slate-100">
+              <h3 className="font-medium text-lg mb-3 text-gray-700">Registration Summary</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
                 <div>
                   <p className="text-sm text-gray-500">Company</p>
@@ -435,14 +436,14 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Total Amount</p>
-                  <p className="font-medium text-bowlsGreen">₹{formData.totalAmount}</p>
+                  <p className="font-medium text-blue-600">₹{formData.totalAmount}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
-              <h3 className="font-medium mb-3 text-bowlsNavy">Tournament Rules</h3>
-              <div className="text-sm text-gray-600 h-32 overflow-y-auto p-3 border border-gray-200 rounded-md bg-white mb-4">
+            <div className="bg-slate-50 p-5 rounded-lg border border-slate-100">
+              <h3 className="font-medium mb-3 text-gray-700">Tournament Rules</h3>
+              <div className="text-sm text-gray-600 h-32 overflow-y-auto p-3 border border-slate-200 rounded-md bg-white mb-4">
                 <p>1. Each team must consist of at least 2 players.</p>
                 <p>2. Players must adhere to the RCGC dress code on the greens.</p>
                 <p>3. Teams must report 15 minutes before their scheduled match time.</p>
@@ -482,8 +483,8 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
     <form onSubmit={handleSubmit}>
       <div className="mb-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-4">
-          <h2 className="text-2xl font-serif font-bold text-bowlsNavy">
-            Registration Form
+          <h2 className="text-2xl font-bold text-gray-800">
+            Team Registration
           </h2>
           <div className="flex items-center">
             <div className="flex items-center space-x-1">
@@ -493,7 +494,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                     key={`step-${step}`}
                     className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                       currentStep >= step 
-                        ? "bg-bowlsGreen text-white" 
+                        ? "bg-blue-600 text-white" 
                         : "bg-gray-200 text-gray-500"
                     }`}
                   >
@@ -503,7 +504,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
                     <div 
                       key={`connector-${step}`}
                       className={`w-6 h-0.5 ${
-                        currentStep > step ? "bg-bowlsGreen" : "bg-gray-200"
+                        currentStep > step ? "bg-blue-600" : "bg-gray-200"
                       }`}
                     ></div>
                   )}
@@ -517,8 +518,8 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
         </p>
       </div>
 
-      <Card className="border-none shadow-md">
-        <CardHeader className="bg-gradient-to-r from-bowlsNavy to-bowlsNavy-dark text-white rounded-t-lg">
+      <Card className="border shadow">
+        <CardHeader className="bg-blue-600 text-white rounded-t-lg">
           <CardTitle className="text-xl">
             {currentStep === 0 && "Company Information"}
             {currentStep === 1 && "Team Details"}
@@ -537,7 +538,7 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
             type="button"
             variant="outline"
             onClick={prevStep}
-            className="border-bowlsGreen text-bowlsGreen hover:bg-green-50"
+            disabled={isProcessing}
           >
             Previous
           </Button>
@@ -546,16 +547,25 @@ const RegistrationForm = ({ onSubmit }: RegistrationFormProps) => {
           <Button
             type="button"
             onClick={nextStep}
-            className="ml-auto bg-bowlsGreen hover:bg-bowlsGreen-dark"
+            className="ml-auto bg-blue-600 hover:bg-blue-700"
+            disabled={isProcessing}
           >
             Next
           </Button>
         ) : (
           <Button
             type="submit"
-            className="ml-auto bg-bowlsGold hover:bg-bowlsGold-dark"
+            className="ml-auto bg-green-600 hover:bg-green-700 flex items-center gap-2"
+            disabled={isProcessing}
           >
-            Proceed to Payment
+            {isProcessing ? (
+              <>
+                <LoaderCircle size={18} className="animate-spin" />
+                <span>Registering...</span>
+              </>
+            ) : (
+              "Complete Registration"
+            )}
           </Button>
         )}
       </div>

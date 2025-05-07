@@ -2,25 +2,78 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import RegistrationForm from "@/components/RegistrationForm";
-import PaymentPage from "@/components/PaymentPage";
 import ReceiptPage from "@/components/ReceiptPage";
 import { FormData } from "@/types/formTypes";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const [currentStep, setCurrentStep] = useState<"form" | "payment" | "receipt">("form");
+  const [currentStep, setCurrentStep] = useState<"form" | "receipt">("form");
   const [formData, setFormData] = useState<FormData | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
   
-  const handleFormSubmit = (data: FormData) => {
+  const handleFormSubmit = async (data: FormData) => {
     setFormData(data);
-    setCurrentStep("payment");
-    window.scrollTo(0, 0);
-  };
-
-  const handlePaymentComplete = () => {
-    setCurrentStep("receipt");
-    window.scrollTo(0, 0);
+    setIsProcessing(true);
+    
+    try {
+      // Show a processing toast
+      toast({
+        title: "Processing Registration",
+        description: "Please wait while we process your registration...",
+      });
+      
+      // Add registration data to Supabase
+      const registrationPromises = data.teams.map(async (team, i) => {
+        const teamNumber = `Team ${i + 1}`;
+        
+        try {
+          const { error } = await supabase.from("registrations").insert({
+            company_name: data.companyName,
+            team_number: teamNumber,
+            player1_name: team.player1.name,
+            player2_name: team.player2.name,
+            captain_name: data.captainName,
+            payment_status: "Paid"
+          });
+          
+          if (error) {
+            console.error("Error inserting registration data:", error);
+            throw error;
+          }
+          
+          return true;
+        } catch (error) {
+          console.error("Error with Supabase:", error);
+          throw error;
+        }
+      });
+      
+      // Wait for all registrations to complete
+      await Promise.all(registrationPromises);
+      
+      // Show success toast for registration
+      toast({
+        title: "Registration Successful",
+        description: "Your registration has been completed successfully.",
+      });
+      
+      // Proceed to receipt
+      setCurrentStep("receipt");
+      window.scrollTo(0, 0);
+    } catch (error) {
+      console.error("Registration processing error:", error);
+      toast({
+        title: "Registration Failed",
+        description: "There was an error processing your registration. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -48,16 +101,7 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {currentStep === "form" && (
           <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
-            <RegistrationForm onSubmit={handleFormSubmit} />
-          </div>
-        )}
-        
-        {currentStep === "payment" && formData && (
-          <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
-            <PaymentPage 
-              formData={formData} 
-              onPaymentComplete={handlePaymentComplete} 
-            />
+            <RegistrationForm onSubmit={handleFormSubmit} isProcessing={isProcessing} />
           </div>
         )}
         
