@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { appendToSheet, formatTeamData } from "@/utils/googleSheets";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PaymentPageProps {
   formData: FormData;
@@ -66,6 +66,34 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
       
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Add registration data to Supabase
+      for (let i = 0; i < formData.teams.length; i++) {
+        const team = formData.teams[i];
+        const teamNumber = `Team ${i + 1}`;
+        
+        try {
+          const { error } = await supabase.from("registrations").insert({
+            company_name: formData.companyName,
+            team_number: teamNumber,
+            player1_name: team.player1.name,
+            player2_name: team.player2.name,
+            captain_name: formData.captainName,
+            payment_status: "Paid"
+          });
+          
+          if (error) {
+            console.error("Error inserting registration data:", error);
+            toast({
+              title: "Database Error",
+              description: "Could not save registration data to database.",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error("Error with Supabase:", error);
+        }
+      }
 
       // Google Sheets integration
       if (sheetsIntegration.enabled && sheetsIntegration.apiKey && sheetsIntegration.spreadsheetId) {

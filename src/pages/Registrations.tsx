@@ -1,98 +1,100 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 interface RegistrationData {
+  id: string;
   timestamp: string;
-  companyName: string;
-  teamNumber: string;
-  player1Name: string;
-  player2Name: string;
-  captainName: string;
-  paymentStatus: string;
-}
-
-interface GoogleSheetsConfig {
-  apiKey: string;
-  spreadsheetId: string;
-  sheetName: string;
+  company_name: string;
+  team_number: string;
+  player1_name: string;
+  player2_name: string;
+  captain_name: string;
+  payment_status: string;
 }
 
 const Registrations = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [registrations, setRegistrations] = useState<RegistrationData[]>([]);
-  const [config, setConfig] = useState<GoogleSheetsConfig>({
-    apiKey: "",
-    spreadsheetId: "",
-    sheetName: "Sheet1",
-  });
+  const [supabaseConnected, setSupabaseConnected] = useState<boolean | null>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setConfig({ ...config, [name]: value });
+  useEffect(() => {
+    checkSupabaseConnection();
+    fetchRegistrations();
+  }, []);
+
+  const checkSupabaseConnection = async () => {
+    try {
+      const { data, error } = await supabase.from("registrations").select("count");
+      if (error) {
+        console.error("Supabase connection error:", error);
+        setSupabaseConnected(false);
+        toast({
+          title: "Connection Error",
+          description: "Failed to connect to Supabase database.",
+          variant: "destructive",
+        });
+      } else {
+        setSupabaseConnected(true);
+        toast({
+          title: "Supabase Connected",
+          description: "Successfully connected to Supabase database.",
+        });
+      }
+    } catch (error) {
+      console.error("Error checking Supabase connection:", error);
+      setSupabaseConnected(false);
+      toast({
+        title: "Connection Error",
+        description: "Failed to connect to Supabase database.",
+        variant: "destructive",
+      });
+    }
   };
 
   const fetchRegistrations = async () => {
-    if (!config.apiKey || !config.spreadsheetId) {
-      toast({
-        title: "Missing Configuration",
-        description: "Please enter your Google Sheets API key and spreadsheet ID.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
     try {
-      const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${config.spreadsheetId}/values/${config.sheetName}?key=${config.apiKey}`;
+      const { data, error } = await supabase
+        .from("registrations")
+        .select("*")
+        .order("created_at", { ascending: false });
       
-      const response = await fetch(endpoint);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+      if (error) {
+        throw error;
       }
       
-      const data = await response.json();
+      const formattedData = data.map((item: any) => ({
+        id: item.id,
+        timestamp: item.timestamp || item.created_at,
+        company_name: item.company_name,
+        team_number: item.team_number,
+        player1_name: item.player1_name,
+        player2_name: item.player2_name,
+        captain_name: item.captain_name,
+        payment_status: item.payment_status,
+      }));
       
-      if (data.values && data.values.length > 1) {
-        const headers = data.values[0];
-        const rows = data.values.slice(1);
-        
-        const processedData: RegistrationData[] = rows.map((row: any) => {
-          const rowData: Record<string, string> = {};
-          headers.forEach((header: string, index: number) => {
-            const key = header.toLowerCase().replace(/\s+/g, '');
-            rowData[key] = row[index] || "";
-          });
-          
-          return {
-            timestamp: rowData.timestamp || "",
-            companyName: rowData.companyname || "",
-            teamNumber: rowData.teamnumber || "",
-            player1Name: rowData.player1name || "",
-            player2Name: rowData.player2name || "",
-            captainName: rowData.captainname || "",
-            paymentStatus: rowData.paymentstatus || "",
-          };
-        });
-        
-        setRegistrations(processedData);
-        
-        toast({
-          title: "Registrations Loaded",
-          description: `Successfully loaded ${processedData.length} registrations.`,
-        });
-      } else {
-        toast({
-          title: "No Data Found",
-          description: "No registration data found in the spreadsheet.",
-          variant: "destructive",
-        });
-      }
+      setRegistrations(formattedData);
+      
+      toast({
+        title: "Registrations Loaded",
+        description: `Successfully loaded ${formattedData.length} registrations.`,
+      });
     } catch (error) {
       console.error("Error fetching registrations:", error);
       toast({
@@ -107,106 +109,87 @@ const Registrations = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-serif font-bold text-bowlsNavy mb-8">
-        Registration Records
-      </h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-serif font-bold text-bowlsNavy">
+          Registration Records
+        </h1>
+        <div className="flex items-center gap-2">
+          <span>Supabase Status:</span>
+          {supabaseConnected === null ? (
+            <span className="text-gray-500">Checking...</span>
+          ) : supabaseConnected ? (
+            <div className="flex items-center gap-1 text-green-600">
+              <CheckCircle2 size={18} />
+              <span>Connected</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 text-red-600">
+              <XCircle size={18} />
+              <span>Disconnected</span>
+            </div>
+          )}
+        </div>
+      </div>
       
       <Card className="mb-6">
         <CardHeader className="bg-bowlsGreen text-white">
-          <CardTitle>Google Sheets Configuration</CardTitle>
+          <CardTitle>Registrations</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="apiKey" className="block text-sm font-medium text-gray-700 mb-1">
-                API Key
-              </label>
-              <Input
-                id="apiKey"
-                name="apiKey"
-                value={config.apiKey}
-                onChange={handleInputChange}
-                placeholder="AIzaSyB..."
-              />
-            </div>
-            <div>
-              <label htmlFor="spreadsheetId" className="block text-sm font-medium text-gray-700 mb-1">
-                Spreadsheet ID
-              </label>
-              <Input
-                id="spreadsheetId"
-                name="spreadsheetId"
-                value={config.spreadsheetId}
-                onChange={handleInputChange}
-                placeholder="1BxiMVs0XRA5nF..."
-              />
-            </div>
-            <div>
-              <label htmlFor="sheetName" className="block text-sm font-medium text-gray-700 mb-1">
-                Sheet Name
-              </label>
-              <Input
-                id="sheetName"
-                name="sheetName"
-                value={config.sheetName}
-                onChange={handleInputChange}
-                placeholder="Sheet1"
-              />
-            </div>
-          </div>
-          <div className="mt-4">
+          <div className="mb-4">
             <Button 
               onClick={fetchRegistrations}
               disabled={loading}
               className="bg-bowlsGreen hover:bg-bowlsGreen-dark"
             >
-              {loading ? "Loading..." : "Load Registrations"}
+              {loading ? "Loading..." : "Refresh Registrations"}
             </Button>
           </div>
+          
+          {registrations.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Team</TableHead>
+                    <TableHead>Player 1</TableHead>
+                    <TableHead>Player 2</TableHead>
+                    <TableHead>Captain</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Timestamp</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {registrations.map((reg) => (
+                    <TableRow key={reg.id}>
+                      <TableCell className="font-medium">{reg.company_name}</TableCell>
+                      <TableCell>{reg.team_number}</TableCell>
+                      <TableCell>{reg.player1_name}</TableCell>
+                      <TableCell>{reg.player2_name}</TableCell>
+                      <TableCell>{reg.captain_name}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          reg.payment_status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {reg.payment_status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-gray-500">
+                        {new Date(reg.timestamp).toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              {loading ? "Loading registrations..." : "No registrations found"}
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {registrations.length > 0 && (
-        <div className="mt-6">
-          <h2 className="text-xl font-medium mb-4">Registration Records</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player 1</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player 2</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Captain</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {registrations.map((reg, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{reg.companyName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{reg.teamNumber}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{reg.player1Name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{reg.player2Name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{reg.captainName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        reg.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {reg.paymentStatus}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(reg.timestamp).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
