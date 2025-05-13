@@ -1,221 +1,155 @@
 
-import { useRef } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { FormData } from "@/types/formTypes";
-import { useToast } from "@/hooks/use-toast";
+import React from 'react';
+import { FormData } from '@/types/formTypes';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { CheckCircle, Download, Calendar, Mail, Phone } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface ReceiptPageProps {
-  formData: FormData;
+  data: FormData;
 }
 
-const ReceiptPage = ({ formData }: ReceiptPageProps) => {
-  const { toast } = useToast();
-  const receiptRef = useRef<HTMLDivElement>(null);
-
+const ReceiptPage: React.FC<ReceiptPageProps> = ({ data }) => {
+  const registrationDate = new Date();
+  const receiptNumber = `MC-${Math.floor(10000 + Math.random() * 90000)}`;
+  
   const handlePrint = () => {
-    if (receiptRef.current) {
-      const printContent = receiptRef.current.innerHTML;
-      const originalContent = document.body.innerHTML;
-      
-      document.body.innerHTML = `
-        <div style="padding: 20px; font-family: Arial, sans-serif;">
-          ${printContent}
-        </div>
-      `;
-      
-      window.print();
-      document.body.innerHTML = originalContent;
-      
-      // Show success toast after printing
-      setTimeout(() => {
-        toast({
-          title: "Print Initiated",
-          description: "Your receipt has been sent to the printer.",
-        });
-      }, 500);
-    }
-  };
-  const handleDownload = () => {
-    // This is a simple implementation. In a real app, you'd generate a proper PDF
-    const paymentInfo = formData.paymentDetails.method === 'offline' && formData.paymentDetails.committeeMember
-      ? `Committee Member: ${formData.paymentDetails.committeeMember.name}\n`
-      : '';
-
-    const receiptText = 
-`37th RCGC Merchants Cup Lawn Bowls Tournament 2024-25 - RECEIPT
-
-Company Details
---------------
-Company: ${formData.companyName}
-Teams Registered: ${formData.numTeams}
-Amount Paid: ₹${formData.totalAmount}
-Captain: ${formData.captainName}
-Date: ${formatDate(formData.date)}
-
-Payment Details
---------------
-Payment Method: ${formData.paymentDetails.method.toUpperCase()}
-${paymentInfo}
-Tournament Details
-----------------
-Venue: RCGC Maidan Pavilion
-Practice Begins: April 22, 2024
-Tournament Starts: May 9, 2024
-Gala Dinner & Prize Distribution: June 9, 2024
-
-Thank you for your registration!`;
-    
-    const blob = new Blob([receiptText], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.download = `RCGC_Receipt_${formData.companyName.replace(/\s+/g, "_")}.txt`;
-    link.href = url;
-    link.click();
-    
-    toast({
-      title: "Receipt Downloaded",
-      description: "Your receipt has been downloaded as a text file.",
-    });
-  };
-
-  // Format the date for display
-  const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    window.print();
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-8 text-center">
-        <h2 className="text-2xl font-serif font-bold text-bowlsGreen">
-          Registration Complete!
-        </h2>
-        <p className="text-gray-600">
-          Your registration and payment have been successfully processed.
-        </p>
+    <div className="space-y-8 print:py-0">
+      <div className="flex flex-col items-center justify-center text-center mb-8 space-y-3">
+        <div className="bg-green-50 w-16 h-16 rounded-full flex items-center justify-center">
+          <CheckCircle className="h-8 w-8 text-green-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-800">Registration Successful</h2>
+        <p className="text-gray-600">Your team registration for the Merchants Cup 2025 has been confirmed.</p>
       </div>
 
-      <div ref={receiptRef}>
-        <Card className="bg-white shadow-xl border border-bowlsGold p-6 mb-6">
-          <div className="text-center mb-6">
-            <h3 className="text-xl font-bold text-bowlsNavy">PAYMENT RECEIPT</h3>
-            <p className="text-bowlsGreen text-lg font-medium">
-              37th RCGC Merchants Cup Lawn Bowls Tournament 2024-25
-            </p>
-          </div>
+      <div className="print:hidden flex justify-center mb-6">
+        <Button 
+          onClick={handlePrint} 
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Download size={18} />
+          <span>Download Receipt</span>
+        </Button>
+      </div>
 
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <p className="text-sm text-gray-600">Receipt Number</p>
-              <p className="font-medium">{Math.floor(Math.random() * 10000).toString().padStart(4, '0')}</p>
+      <Card className="border-2 border-gray-200 overflow-hidden print:shadow-none">
+        <div className="bg-blue-600 px-6 py-4 print:bg-white print:border-b print:border-gray-300">
+          <div className="flex flex-col md:flex-row justify-between items-center text-white print:text-gray-800">
+            <div className="flex items-center gap-4 mb-4 md:mb-0">
+              <img 
+                src="/logo.jpeg" 
+                alt="Merchant Cup Logo" 
+                className="w-12 h-12 rounded-lg"
+              />
+              <div className="text-left">
+                <h3 className="font-bold text-xl">Merchant Cup</h3>
+                <p className="text-sm opacity-90 print:text-gray-600">RCGC Bowling Section</p>
+              </div>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Date</p>
-              <p className="font-medium">{new Date().toLocaleDateString()}</p>
+              <p className="font-bold print:text-gray-800">RECEIPT</p>
+              <p className="text-sm opacity-90 print:text-gray-600"># {receiptNumber}</p>
             </div>
-          </div>          <div className="border-t border-b py-6 my-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <p className="text-sm text-gray-600">Company</p>
-                <p className="font-medium">{formData.companyName}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Captain</p>
-                <p className="font-medium">{formData.captainName}</p>
+          </div>
+        </div>
+        
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row justify-between mb-6">
+            <div>
+              <p className="text-sm text-gray-500">Company</p>
+              <p className="font-medium text-gray-900">{data.companyName}</p>
+              <p className="text-sm text-gray-500 mt-2 whitespace-pre-line">{data.address}</p>
+            </div>
+            <div className="mt-4 md:mt-0 md:text-right">
+              <p className="text-sm text-gray-500">Registration Date</p>
+              <p className="font-medium text-gray-900 flex items-center gap-1 md:justify-end">
+                <Calendar size={16} className="text-gray-400" /> 
+                {format(registrationDate, 'dd MMMM yyyy')}
+              </p>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">Contact Information</p>
+                <p className="font-medium text-gray-900 flex items-center gap-1 md:justify-end">
+                  <Phone size={16} className="text-gray-400" /> 
+                  {data.contactPhone}
+                </p>
+                <p className="font-medium text-gray-900 flex items-center gap-1 md:justify-end">
+                  <Mail size={16} className="text-gray-400" /> 
+                  {data.contactEmail}
+                </p>
               </div>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <p className="text-sm text-gray-600">Teams Registered</p>
-                <p className="font-medium">{formData.numTeams}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Registration Date</p>
-                <p className="font-medium">{formatDate(formData.date)}</p>
-              </div>
+          <div className="border-t border-gray-200 pt-6">
+            <h4 className="font-medium text-gray-900 mb-4">Registered Teams</h4>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                    <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Players</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {data.teams.map((team, index) => (
+                    <tr key={index}>
+                      <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        Team {index + 1}
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div>
+                          <p className="font-medium text-gray-900">{team.player1.name}</p>
+                          <p className="text-xs text-gray-500">{team.player1.mobile}</p>
+                        </div>
+                        <div className="mt-2">
+                          <p className="font-medium text-gray-900">{team.player2.name}</p>
+                          <p className="text-xs text-gray-500">{team.player2.mobile}</p>
+                        </div>
+                        <div className="mt-2">
+                          <p className="font-medium text-gray-900">{team.player3.name}</p>
+                          <p className="text-xs text-gray-500">{team.player3.mobile}</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="border-t border-gray-200 pt-6 mt-6">
+            <div className="flex flex-col md:flex-row justify-between items-start">
               <div>
-                <p className="text-sm text-gray-600">Payment Method</p>
-                <p className="font-medium capitalize">{formData.paymentDetails.method}</p>
+                <p className="text-sm text-gray-500">Captain</p>
+                <p className="font-medium text-gray-900">{data.captainName}</p>
+                <p className="text-sm text-gray-500">{data.designation}</p>
               </div>
-              {formData.paymentDetails.method === 'offline' && formData.paymentDetails.committeeMember && (
-                <div>
-                  <p className="text-sm text-gray-600">Committee Member</p>
-                  <p className="font-medium">{formData.paymentDetails.committeeMember.name}</p>
+              <div className="mt-4 md:mt-0 bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Registration Fee</p>
+                  <p className="text-lg font-bold text-gray-900">₹{data.totalAmount}</p>
+                  <p className="text-xs text-green-600 font-medium">PAID</p>
                 </div>
-              )}
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <table className="w-full text-left">
-              <thead className="text-sm text-gray-600 border-b">
-                <tr>
-                  <th className="py-2">Description</th>
-                  <th className="py-2 text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="py-3">Registration Fee ({formData.numTeams} Team{formData.numTeams > 1 ? 's' : ''})</td>
-                  <td className="py-3 text-right">₹{formData.numTeams * 8850}</td>
-                </tr>
-                <tr className="border-t">
-                  <td className="py-3 font-medium">Total</td>
-                  <td className="py-3 text-right font-bold">₹{formData.totalAmount}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div className="text-center mt-8 p-4 bg-green-50 rounded-md">
-            <h4 className="font-medium text-bowlsGreen mb-2">Tournament Details</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-              <div>
-                <p className="text-gray-600">Venue</p>
-                <p className="font-medium">RCGC Maidan Pavilion</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Practice Begins</p>
-                <p className="font-medium">April 22, 2024</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Tournament Starts</p>
-                <p className="font-medium">May 9, 2024</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Prize Distribution</p>
-                <p className="font-medium">June 9, 2024</p>
               </div>
             </div>
           </div>
-
-          <div className="text-center mt-8">
-            <p className="text-bowlsNavy font-medium">Thank you for your registration!</p>
-            <p className="text-gray-600 italic mt-1">See you on the greens!</p>
+          
+          <div className="border-t border-gray-200 pt-6 mt-6">
+            <div className="text-center text-sm text-gray-500">
+              <p>Thank you for registering for the Merchant Cup Lawn Bowls Tournament 2025.</p>
+              <p className="mt-2">For any queries, please contact RCGC Bowling Section.</p>
+              <p className="mt-4 text-xs">Venue: RCGC Maidan Pavilion | Tournament Starts: May 9, 2025</p>
+            </div>
           </div>
-        </Card>
-      </div>
-
-      <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
-        <Button 
-          onClick={handlePrint}
-          className="bg-bowlsGreen hover:bg-bowlsGreen-dark"
-        >
-          Print Receipt
-        </Button>
-        <Button 
-          onClick={handleDownload}
-          variant="outline" 
-          className="border-bowlsGreen text-bowlsGreen hover:bg-green-50"
-        >
-          Download Receipt
-        </Button>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

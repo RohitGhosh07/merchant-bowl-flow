@@ -9,10 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, CheckIcon, Trash2, UserPlus, LoaderCircle } from "lucide-react";
-import ReCaptcha from "@/components/ReCaptcha";
-import { PaymentOptions } from "@/components/PaymentOptions";
-import { PaymentDetails } from "@/types/formTypes";
-import React from "react";
 
 interface RegistrationFormProps {
   onSubmit: (data: FormData) => void;
@@ -22,8 +18,7 @@ interface RegistrationFormProps {
 const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormProps) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
-  const [captchaVerified, setCaptchaVerified] = useState(false);
-    const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<FormData>({
     companyName: "",
     contactPhone: "",
     contactEmail: "",
@@ -37,14 +32,15 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
     ],
     paymentDetails: {
       method: "online",
-      status: "pending",
+      status: "paid", // Changed to paid by default since we're removing payment flow
       amount: 8850,
       paymentDate: new Date().toISOString(),
     },
     captainName: "",
     designation: "",
-    date: new Date().toISOString().split("T")[0],    signature: "",
-    rulesAccepted: true,
+    date: new Date().toISOString().split("T")[0],
+    signature: "",
+    rulesAccepted: false,
     numTeams: 1,
     totalAmount: 8850 // Price per team
   });
@@ -55,7 +51,8 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
         ...formData,
         teams: [
           ...formData.teams,
-          {            player1: { name: "", mobile: "", email: "", role: "captain" },
+          {
+            player1: { name: "", mobile: "", email: "", role: "captain" },
             player2: { name: "", mobile: "", email: "", role: "player" },
             player3: { name: "", mobile: "", email: "", role: "player" }
           }
@@ -88,6 +85,7 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
       });
     }
   };
+  
   const updateTeamMember = (
     teamIndex: number,
     role: "player1" | "player2" | "player3",
@@ -110,23 +108,13 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setFormData({ ...formData, signature: reader.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleCheckboxChange = (checked: boolean) => {
     setFormData({ ...formData, rulesAccepted: checked });
   };
 
   const validateStep = (step: number): boolean => {
-    switch (step) {      case 0:
+    switch (step) {
+      case 0:
         if (!formData.companyName.trim() || !formData.contactPhone.trim() || !formData.contactEmail.trim() || !formData.address.trim()) {
           toast({
             title: "Missing Information",
@@ -154,7 +142,8 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
           return false;
         }
         return true;
-      case 1:        let valid = true;
+      case 1:
+        let valid = true;
         formData.teams.forEach((team, index) => {
           if (!team.player1.name || !team.player1.mobile || 
               !team.player2.name || !team.player2.mobile ||
@@ -166,19 +155,6 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
             });
             valid = false;
           }
-
-          // Validate email format if provided
-          const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          [team.player1, team.player2, team.player3].forEach((player, playerIndex) => {
-            if (player.email && !emailPattern.test(player.email)) {
-              toast({
-                title: "Invalid Email Format",
-                description: `Please enter a valid email address for Player ${playerIndex + 1} in Team ${index + 1}.`,
-                variant: "destructive",
-              });
-              valid = false;
-            }
-          });
         });
         return valid;
       case 2:
@@ -200,14 +176,6 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
           });
           return false;
         }
-        if (!captchaVerified) {
-          toast({
-            title: "CAPTCHA Not Verified",
-            description: "Please verify that you are not a robot.",
-            variant: "destructive",
-          });
-          return false;
-        }
         return true;
       default:
         return true;
@@ -224,43 +192,19 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
   const prevStep = () => {
     setCurrentStep(currentStep - 1);
     window.scrollTo(0, 0);
-  };  const handleSubmit = async (e: React.FormEvent) => {
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateStep(3)) {
-      try {
-        const { sendRegistrationEmail } = await import('@/services/emailService');
-        await sendRegistrationEmail(formData);
-        onSubmit(formData);
-        
-        toast({
-          title: "Registration Successful",
-          description: "A confirmation email has been sent to all team members.",
-        });
-      } catch (error) {
-        console.error('Error during registration:', error);
-        toast({
-          title: "Registration Completed",
-          description: "Registration was successful, but there was an issue sending the confirmation email. Please keep your receipt for reference.",
-          variant: "destructive",
-        });
-        onSubmit(formData);
-      }
+    if (validateStep(currentStep)) {
+      formData.paymentDetails.status = "paid";
+      onSubmit(formData);
     }
   };
 
-  const handleCaptchaVerify = () => {
-    setCaptchaVerified(true);
-    toast({
-      title: "CAPTCHA Verified",
-      description: "You have successfully verified the CAPTCHA.",
-    });
-  };
-  const handlePaymentUpdate = (details: PaymentDetails) => {
-    setFormData({ ...formData, paymentDetails: details });
-  };
-
   const renderStep = () => {
-    switch (currentStep) {      case 0:
+    switch (currentStep) {
+      case 0:
         return (
           <div className="space-y-6">
             <div className="bg-slate-50 rounded-lg p-5 border border-slate-100">
@@ -311,7 +255,6 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
                     maxLength={10}
                     required
                   />
-                  <p className="text-sm text-gray-500 mt-1">This number will be used for payment gateway</p>
                 </div>
                 <div>
                   <Label htmlFor="contactEmail" className="text-gray-700 font-medium">Contact Email*</Label>
@@ -325,7 +268,6 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
                     type="email"
                     required
                   />
-                  <p className="text-sm text-gray-500 mt-1">Invoice and confirmation will be sent to this email</p>
                 </div>
               </div>
             </div>
@@ -351,7 +293,8 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
                   )}
                 </div>
                 
-                <div className="grid gap-4">                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor={`player1-name-${teamIndex}`} className="text-gray-700">Player 1 Name*</Label>
                       <Input
@@ -387,7 +330,7 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor={`player2-name-${teamIndex}`} className="text-gray-700">Player 2 Name*</Label>
                       <Input
@@ -410,8 +353,20 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
                         required
                       />
                     </div>
+                    <div>
+                      <Label htmlFor={`player2-email-${teamIndex}`} className="text-gray-700">Player 2 Email</Label>
+                      <Input
+                        id={`player2-email-${teamIndex}`}
+                        value={team.player2.email || ""}
+                        onChange={(e) => updateTeamMember(teamIndex, "player2", "email", e.target.value)}
+                        type="email"
+                        placeholder="Enter email address"
+                        className="mt-1.5"
+                      />
+                    </div>
                   </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor={`player3-name-${teamIndex}`} className="text-gray-700">Player 3 Name*</Label>
                       <Input
@@ -513,83 +468,17 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
                 <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               </div>
             </div>
-            <div>
-              <Label htmlFor="signature" className="text-gray-700 font-medium">Digital Signature (Optional)</Label>
-              <Input
-                id="signature"
-                name="signature"
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="mt-1.5"
-              />
-              {formData.signature && (
-                <div className="mt-2">
-                  <p className="text-sm text-green-700 flex items-center gap-1">
-                    <CheckIcon size={16} />
-                    <span>Signature uploaded successfully</span>
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        );      case 3:
-        return (          <div className="space-y-6">            <PaymentOptions 
-              onPaymentUpdate={handlePaymentUpdate}
-              amount={formData.totalAmount}
-              rulesAccepted={formData.rulesAccepted}
-              onRulesAcceptedChange={handleCheckboxChange}
-              onCaptchaVerify={handleCaptchaVerify}
-              phoneNumber={formData.contactPhone}
-              name={formData.captainName}
-            />
           </div>
         );
-      case 4:
+      case 3:
         return (
           <div className="space-y-6">
             <div className="bg-slate-50 p-5 rounded-lg border border-slate-100">
-              <h3 className="font-medium text-lg mb-3 text-gray-700">Registration Summary</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">                <div>
-                  <p className="text-sm text-gray-500">Company</p>
-                  <p className="font-medium">{formData.companyName}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Contact Information</p>
-                  <p className="font-medium">{formData.contactPhone}</p>
-                  <p className="text-sm text-gray-600">{formData.contactEmail}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Teams Registered</p>
-                  <p className="font-medium">{formData.numTeams}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Captain</p>
-                  <p className="font-medium">{formData.captainName}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Total Amount</p>
-                  <p className="font-medium text-blue-600">₹{formData.totalAmount}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Payment Method</p>
-                  <p className="font-medium capitalize">{formData.paymentDetails.method}</p>
-                </div>
-                {formData.paymentDetails.method === 'offline' && formData.paymentDetails.committeeMember && (
-                  <div>
-                    <p className="text-sm text-gray-500">Committee Member</p>
-                    <p className="font-medium">{formData.paymentDetails.committeeMember.name}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-slate-50 p-5 rounded-lg border border-slate-100">              <h3 className="font-medium mb-3 text-gray-700">Team Rules and Regulations</h3>
+              <h3 className="font-medium mb-3 text-gray-700">Tournament Rules and Regulations</h3>
               <div className="text-sm text-gray-600 h-40 overflow-y-auto p-3 border border-slate-200 rounded-md bg-white mb-4">
                 <p className="font-semibold mb-2">TEAM</p>
-                <p>• A team consists of two players called LEAD and SKIP, in which the Lead bowls first followed by Skip.</p>
-                <p>• Teams with total handicap of 19 or 20 must have at least one playing member from the participating company.</p>
-                <p>• Teams with total handicap of 18 or less must have both playing members from the participating company.</p>
+                <p>• A team consists of three players called LEAD, SECOND and SKIP, in which the Lead bowls first followed by Second and then Skip.</p>
+                <p>• Teams must have at least one playing member from the participating company.</p>
                 <p>• Each player rolls four woods each.</p>
                 <p>• Before the start of the game, two practice ends with two woods each player shall be allowed.</p>
                 
@@ -626,7 +515,6 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
                 <Checkbox
                   id="rules"
                   checked={formData.rulesAccepted}
-                  defaultChecked={true}
                   onCheckedChange={handleCheckboxChange}
                 />
                 <label
@@ -637,9 +525,32 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
                 </label>
               </div>
             </div>
-
-            <div className="flex justify-center mt-6">
-              <ReCaptcha onVerify={handleCaptchaVerify} />
+            
+            <div className="bg-slate-50 p-5 rounded-lg border border-slate-100">
+              <h3 className="font-medium text-lg mb-3 text-gray-700">Registration Summary</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                <div>
+                  <p className="text-sm text-gray-500">Company</p>
+                  <p className="font-medium">{formData.companyName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Contact Information</p>
+                  <p className="font-medium">{formData.contactPhone}</p>
+                  <p className="text-sm text-gray-600">{formData.contactEmail}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Teams Registered</p>
+                  <p className="font-medium">{formData.numTeams}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Captain</p>
+                  <p className="font-medium">{formData.captainName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Total Amount</p>
+                  <p className="font-medium text-blue-600">₹{formData.totalAmount}</p>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -656,7 +567,8 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
             Team Registration
           </h2>
           <div className="flex items-center">
-            <div className="flex items-center space-x-1">              {[0, 1, 2, 3, 4].map((step) => (
+            <div className="flex items-center space-x-1">
+              {[0, 1, 2, 3].map((step) => (
                 <div key={step} className="flex items-center">
                   <div 
                     className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
@@ -667,7 +579,7 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
                   >
                     {step + 1}
                   </div>
-                  {step < 4 && (
+                  {step < 3 && (
                     <div 
                       className={`w-6 h-0.5 ${
                         currentStep > step ? "bg-blue-600" : "bg-gray-200"
@@ -686,11 +598,11 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
 
       <Card className="border shadow">
         <CardHeader className="bg-blue-600 text-white rounded-t-lg">
-          <CardTitle className="text-xl">            {currentStep === 0 && "Company Information"}
+          <CardTitle className="text-xl">
+            {currentStep === 0 && "Company Information"}
             {currentStep === 1 && "Team Details"}
             {currentStep === 2 && "Captain Details"}
-            {currentStep === 3 && "Payment Options"}
-            {currentStep === 4 && "Review & Confirm"}
+            {currentStep === 3 && "Review & Confirm"}
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
@@ -709,7 +621,7 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
             Previous
           </Button>
         )}
-        {currentStep < 4 ? (
+        {currentStep < 3 ? (
           <Button
             type="button"
             onClick={nextStep}

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import RegistrationForm from "@/components/RegistrationForm";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ReceiptPage from "@/components/ReceiptPage";
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState<"form" | "receipt">("form");
@@ -74,10 +76,12 @@ const Index = () => {
     }
   };
 
-  return (    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       <header className="bg-white border-b py-4 sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">            <div className="flex items-center gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center gap-6">
               <div className="flex items-center gap-4">
                 <img 
                   src="/logo.jpeg" 
@@ -121,13 +125,14 @@ const Index = () => {
         
         {currentStep === "receipt" && formData && (
           <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
+            <ReceiptPage data={formData} />
           </div>
         )}
 
         <div className="mt-8 flex justify-center">
           <div className="bg-white p-4 rounded-lg shadow-md border border-green-200 inline-flex items-center gap-2 text-sm">
             <CheckCircle className="text-green-500" size={18} />
-            <span>Connected to Supabase database</span>
+            <span>Connected to database</span>
           </div>
         </div>
       </main>
@@ -136,7 +141,7 @@ const Index = () => {
         <div className="container mx-auto px-4 text-center">
           <p>RCGC Bowling Section</p>
           <p className="mt-2 text-sm text-gray-300">
-            Venue: RCGC Maidan Pavilion | Tournament Starts: May 9, 2024
+            Venue: RCGC Maidan Pavilion | Tournament Starts: May 9, 2025
           </p>
         </div>
       </footer>
