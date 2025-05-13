@@ -7,23 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
-// Committee member data
-const committeeMembers = [
-  { id: '1', name: 'Sanjay Lakhotia', designation: 'Committee Member' },
-  { id: '2', name: 'Vikram Poddar', designation: 'Committee Member' },
-  { id: '3', name: 'Rajesh Kankaria', designation: 'Committee Member' },
-  { id: '4', name: 'Prashant Mehra', designation: 'Committee Member' },
-  { id: '5', name: 'Timir Roy', designation: 'Committee Member' },
-  { id: '6', name: 'Chandan Shroff', designation: 'Committee Member' },
-  { id: '7', name: 'Somenath Chatterjee', designation: 'Committee Member' },
-  { id: '8', name: 'Devesh Srivastava', designation: 'Committee Member' },
-  { id: '9', name: 'Samit Malhotra', designation: 'Committee Member' },
-  { id: '10', name: 'Agnesh Kumar Verma', designation: 'Committee Member' },
-];
+import { IndianRupee } from "lucide-react";
 
 interface PaymentSelectionProps {
   formData: FormData;
@@ -32,10 +18,13 @@ interface PaymentSelectionProps {
 
 const PaymentSelection = ({ formData, onComplete }: PaymentSelectionProps) => {
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'offline'>('online');
-  const [selectedMember, setSelectedMember] = useState<string>("");
+  const [committeeMember, setCommitteeMember] = useState<string>("");
   const [referredBy, setReferredBy] = useState<string>("");
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Fixed amount regardless of number of teams
+  const fixedAmount = 10030;
 
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value as 'online' | 'offline');
@@ -46,15 +35,14 @@ const PaymentSelection = ({ formData, onComplete }: PaymentSelectionProps) => {
       // Redirect to the payment gateway
       const name = encodeURIComponent(formData.companyName);
       const phoneNumber = encodeURIComponent(formData.contactPhone);
-      const amount = formData.totalAmount;
       
-      window.location.href = `https://rcgcbooking.in/ccavenue_pg_v2/make_payment_merchant.php?organization_id=RCGC&name=${name}&phone_number=${phoneNumber}&amount=${amount}`;
+      window.location.href = `https://rcgcbooking.in/ccavenue_pg_v2/make_payment_merchant.php?organization_id=RCGC&name=${name}&phone_number=${phoneNumber}&amount=${fixedAmount}`;
     } else {
       // Handle offline payment
-      if (!selectedMember) {
+      if (!committeeMember) {
         toast({
-          title: "Committee Member Required",
-          description: "Please select a committee member you're paying to.",
+          title: "Payment Information Required",
+          description: "Please enter the name of the committee member you're paying to.",
           variant: "destructive",
         });
         return;
@@ -62,7 +50,7 @@ const PaymentSelection = ({ formData, onComplete }: PaymentSelectionProps) => {
 
       // Mark the registration as unpaid/pending in Supabase
       const referenceInfo = {
-        committeeMember: selectedMember,
+        committeeMember: committeeMember,
         referredBy: referredBy || "Not specified"
       };
       
@@ -111,18 +99,11 @@ const PaymentSelection = ({ formData, onComplete }: PaymentSelectionProps) => {
           <div className="space-y-4 animate-in fade-in-50">
             <div className="space-y-2">
               <Label>Who are you paying to?</Label>
-              <Select value={selectedMember} onValueChange={setSelectedMember}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a committee member" />
-                </SelectTrigger>
-                <SelectContent>
-                  {committeeMembers.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.name} - {member.designation}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input 
+                placeholder="Enter committee member's name" 
+                value={committeeMember}
+                onChange={(e) => setCommitteeMember(e.target.value)}
+              />
             </div>
 
             <div className="space-y-2">
@@ -139,7 +120,10 @@ const PaymentSelection = ({ formData, onComplete }: PaymentSelectionProps) => {
         {paymentMethod === 'online' && (
           <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
             <h3 className="font-medium text-blue-800 mb-2">Online Payment Details</h3>
-            <p className="text-sm text-blue-600 mb-2">Amount: ₹{formData.totalAmount.toLocaleString()}</p>
+            <div className="flex items-center gap-1 text-sm text-blue-600 mb-2">
+              <IndianRupee className="h-4 w-4" />
+              <span>{fixedAmount.toLocaleString()}</span>
+            </div>
             <p className="text-sm text-blue-600">You will be redirected to the payment gateway.</p>
           </div>
         )}

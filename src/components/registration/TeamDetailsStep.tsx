@@ -22,6 +22,9 @@ const TeamDetailsStep = ({
   updateTeamMember 
 }: TeamDetailsStepProps) => {
   const { toast } = useToast();
+  
+  // Fixed amount regardless of number of teams
+  const fixedAmount = 10030;
 
   const addTeam = () => {
     if (formData.teams.length < 3) {
@@ -36,7 +39,7 @@ const TeamDetailsStep = ({
           }
         ],
         numTeams: formData.numTeams + 1,
-        totalAmount: (formData.numTeams + 1) * 8850
+        totalAmount: fixedAmount // Use fixed amount
       });
     } else {
       toast({
@@ -54,7 +57,7 @@ const TeamDetailsStep = ({
         ...formData,
         teams: newTeams,
         numTeams: formData.numTeams - 1,
-        totalAmount: (formData.numTeams - 1) * 8850
+        totalAmount: fixedAmount // Use fixed amount
       });
     } else {
       toast({
@@ -103,11 +106,11 @@ const TeamDetailsStep = ({
       )}
 
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-        <p className="text-gray-700 text-sm">
-          Registration Fee: <span className="font-bold">₹8,850</span> per team
+        <p className="text-gray-700 text-sm mb-2">
+          Registration Fee: <span className="font-bold">₹10,030/-</span>
         </p>
-        <p className="text-gray-700 font-bold mt-2">
-          Total Amount: ₹{formData.totalAmount}
+        <p className="text-gray-700 font-bold">
+          Total Amount: ₹{formData.totalAmount.toLocaleString()}/-
         </p>
       </div>
     </div>

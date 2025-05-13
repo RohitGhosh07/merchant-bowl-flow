@@ -16,8 +16,17 @@ const Index = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   
+  // Fixed amount regardless of number of teams
+  const fixedAmount = 10030;
+
   const handleFormSubmit = async (data: FormData) => {
-    setFormData(data);
+    // Ensure the total amount is set to the fixed amount
+    const updatedData = {
+      ...data,
+      totalAmount: fixedAmount
+    };
+    
+    setFormData(updatedData);
     // Move to the payment selection page
     setCurrentStep("payment");
     window.scrollTo(0, 0);
@@ -64,14 +73,19 @@ const Index = () => {
       // Wait for all registrations to complete
       await Promise.all(registrationPromises);
       
-      // Update form data with payment status
+      // Update form data with payment status and reference info
       setFormData({
         ...formData,
         paymentDetails: {
           ...formData.paymentDetails,
           status: paymentStatus === "Paid" ? "completed" : "pending",
           ...(referenceInfo && {
-            committeeMember: committeeMembers.find(m => m.id === referenceInfo.committeeMember),
+            committeeMember: { 
+              id: "custom", 
+              name: referenceInfo.committeeMember, 
+              designation: "Committee Member", 
+              phone: "" 
+            },
             referredBy: referenceInfo.referredBy
           })
         }
