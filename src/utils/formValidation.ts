@@ -1,11 +1,14 @@
 
 import { FormData } from "@/types/formTypes";
-import { ToastProps } from "@/hooks/use-toast";
+import { toast as toastFunction } from "@/hooks/use-toast";
+
+// Define the type for the toast function parameter
+type ToastFunction = typeof toastFunction;
 
 export const validateStep = (
   step: number, 
   formData: FormData, 
-  toast: (props: ToastProps) => void
+  toast: ToastFunction
 ): boolean => {
   switch (step) {
     case 0:
