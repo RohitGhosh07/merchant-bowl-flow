@@ -1,8 +1,6 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import RegistrationForm from "@/components/RegistrationForm";
-import ReceiptPage from "@/components/ReceiptPage";
 import { FormData } from "@/types/formTypes";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
@@ -76,20 +74,36 @@ const Index = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-green-50">
-      <header className="bg-bowlsNavy text-white py-4 shadow-md">
+  return (    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+      <header className="bg-white border-b py-4 sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <h1 className="text-2xl md:text-3xl font-serif font-bold text-center md:text-left mb-2 md:mb-0">
-              37th RCGC Merchants Cup
-            </h1>
-            <div className="flex items-center gap-4">
-              <h2 className="text-lg md:text-xl font-medium text-bowlsGold-light">
-                Lawn Bowls Tournament 2024-25
+          <div className="flex flex-col md:flex-row justify-between items-center">            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4">
+                <img 
+                  src="/logo.jpeg" 
+                  alt="Merchant Cup Logo" 
+                  className="w-12 h-12 rounded-lg shadow-sm"
+                />
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-serif font-bold text-gray-800 text-center md:text-left">
+                    Merchants Cup
+                  </h1>
+                  <p className="text-sm text-gray-500 hidden md:block">RCGC Bowling Section</p>
+                </div>
+              </div>
+              <div className="border-l h-12 border-gray-200"></div>
+              <img 
+                src="/rcgc.jpeg" 
+                alt="RCGC Logo" 
+                className="w-10 h-10 rounded-full shadow-sm hidden md:block"
+              />
+            </div>
+            <div className="flex items-center gap-6">
+              <h2 className="text-lg font-medium bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                Lawn Bowls Tournament 2025
               </h2>
               <Link to="/registrations">
-                <Button variant="outline" className="bg-transparent border-white hover:bg-white/10 text-white">
+                <Button variant="outline" className="bg-white border-blue-600 text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-medium transition-colors">
                   View Registrations
                 </Button>
               </Link>
@@ -107,7 +121,6 @@ const Index = () => {
         
         {currentStep === "receipt" && formData && (
           <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
-            <ReceiptPage formData={formData} />
           </div>
         )}
 

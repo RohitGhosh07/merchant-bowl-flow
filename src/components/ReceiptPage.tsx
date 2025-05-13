@@ -36,25 +36,35 @@ const ReceiptPage = ({ formData }: ReceiptPageProps) => {
       }, 500);
     }
   };
-
   const handleDownload = () => {
     // This is a simple implementation. In a real app, you'd generate a proper PDF
-    const receiptText = `
-RCGC Lawn Bowls Tournament 2024-25 - RECEIPT
+    const paymentInfo = formData.paymentDetails.method === 'offline' && formData.paymentDetails.committeeMember
+      ? `Committee Member: ${formData.paymentDetails.committeeMember.name}\n`
+      : '';
 
+    const receiptText = 
+`37th RCGC Merchants Cup Lawn Bowls Tournament 2024-25 - RECEIPT
+
+Company Details
+--------------
 Company: ${formData.companyName}
 Teams Registered: ${formData.numTeams}
 Amount Paid: ₹${formData.totalAmount}
 Captain: ${formData.captainName}
-Date: ${formData.date}
+Date: ${formatDate(formData.date)}
 
+Payment Details
+--------------
+Payment Method: ${formData.paymentDetails.method.toUpperCase()}
+${paymentInfo}
+Tournament Details
+----------------
 Venue: RCGC Maidan Pavilion
 Practice Begins: April 22, 2024
 Tournament Starts: May 9, 2024
 Gala Dinner & Prize Distribution: June 9, 2024
 
-Thank you for your registration!
-    `;
+Thank you for your registration!`;
     
     const blob = new Blob([receiptText], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -104,9 +114,7 @@ Thank you for your registration!
               <p className="text-sm text-gray-600">Date</p>
               <p className="font-medium">{new Date().toLocaleDateString()}</p>
             </div>
-          </div>
-
-          <div className="border-t border-b py-6 my-6">
+          </div>          <div className="border-t border-b py-6 my-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <p className="text-sm text-gray-600">Company</p>
@@ -118,7 +126,7 @@ Thank you for your registration!
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
                 <p className="text-sm text-gray-600">Teams Registered</p>
                 <p className="font-medium">{formData.numTeams}</p>
@@ -127,6 +135,19 @@ Thank you for your registration!
                 <p className="text-sm text-gray-600">Registration Date</p>
                 <p className="font-medium">{formatDate(formData.date)}</p>
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600">Payment Method</p>
+                <p className="font-medium capitalize">{formData.paymentDetails.method}</p>
+              </div>
+              {formData.paymentDetails.method === 'offline' && formData.paymentDetails.committeeMember && (
+                <div>
+                  <p className="text-sm text-gray-600">Committee Member</p>
+                  <p className="font-medium">{formData.paymentDetails.committeeMember.name}</p>
+                </div>
+              )}
             </div>
           </div>
 
