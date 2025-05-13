@@ -1,155 +1,222 @@
 
-import React from 'react';
-import { FormData } from '@/types/formTypes';
+import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle, Download, Calendar, Mail, Phone } from 'lucide-react';
-import { format } from 'date-fns';
+import { FormData } from '@/types/formTypes';
+import { PrinterIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface ReceiptPageProps {
   data: FormData;
 }
 
-const ReceiptPage: React.FC<ReceiptPageProps> = ({ data }) => {
-  const registrationDate = new Date();
-  const receiptNumber = `MC-${Math.floor(10000 + Math.random() * 90000)}`;
+const ReceiptPage = ({ data }: ReceiptPageProps) => {
+  const receiptRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   
   const handlePrint = () => {
-    window.print();
+    const printContents = receiptRef.current?.innerHTML;
+    const originalContents = document.body.innerHTML;
+    
+    if (printContents) {
+      document.body.innerHTML = `
+        <html>
+          <head>
+            <title>Registration Receipt</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              h1 { color: #1e40af; }
+              .header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+              .logo { width: 80px; height: 80px; }
+              .receipt-section { margin-bottom: 20px; }
+              .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+              table, th, td { border: 1px solid #e2e8f0; }
+              th, td { padding: 8px 12px; text-align: left; }
+              th { background-color: #f1f5f9; }
+              .footer { margin-top: 40px; text-align: center; font-size: 14px; color: #64748b; }
+              .payment-status { padding: 4px 8px; border-radius: 4px; display: inline-block; }
+              .completed { background-color: #dcfce7; color: #166534; }
+              .pending { background-color: #fef3c7; color: #92400e; }
+              @media print {
+                .no-print { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            ${printContents}
+            <div class="footer">
+              <p>RCGC Bowling Section | Merchants Cup 2025</p>
+              <p>For any queries, please contact the tournament committee.</p>
+            </div>
+          </body>
+        </html>
+      `;
+      
+      window.print();
+      document.body.innerHTML = originalContents;
+    }
+  };
+
+  // Format date to be more readable
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  // Determine payment status display
+  const getPaymentStatusDisplay = () => {
+    const status = data.paymentDetails.status;
+    if (status === 'completed') {
+      return <span className="bg-green-100 text-green-800 px-2 py-1 rounded">Paid</span>;
+    } else {
+      return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Pending</span>;
+    }
   };
 
   return (
-    <div className="space-y-8 print:py-0">
-      <div className="flex flex-col items-center justify-center text-center mb-8 space-y-3">
-        <div className="bg-green-50 w-16 h-16 rounded-full flex items-center justify-center">
-          <CheckCircle className="h-8 w-8 text-green-600" />
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-800">Registration Receipt</h2>
+        <div className="flex gap-3">
+          <Button onClick={handlePrint} className="flex items-center gap-2">
+            <PrinterIcon size={16} />
+            Print Receipt
+          </Button>
+          <Button onClick={() => navigate('/')} variant="outline">
+            New Registration
+          </Button>
         </div>
-        <h2 className="text-2xl font-bold text-gray-800">Registration Successful</h2>
-        <p className="text-gray-600">Your team registration for the Merchants Cup 2025 has been confirmed.</p>
       </div>
 
-      <div className="print:hidden flex justify-center mb-6">
-        <Button 
-          onClick={handlePrint} 
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          <Download size={18} />
-          <span>Download Receipt</span>
-        </Button>
-      </div>
-
-      <Card className="border-2 border-gray-200 overflow-hidden print:shadow-none">
-        <div className="bg-blue-600 px-6 py-4 print:bg-white print:border-b print:border-gray-300">
-          <div className="flex flex-col md:flex-row justify-between items-center text-white print:text-gray-800">
-            <div className="flex items-center gap-4 mb-4 md:mb-0">
-              <img 
-                src="/logo.jpeg" 
-                alt="Merchant Cup Logo" 
-                className="w-12 h-12 rounded-lg"
-              />
-              <div className="text-left">
-                <h3 className="font-bold text-xl">Merchant Cup</h3>
-                <p className="text-sm opacity-90 print:text-gray-600">RCGC Bowling Section</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="font-bold print:text-gray-800">RECEIPT</p>
-              <p className="text-sm opacity-90 print:text-gray-600"># {receiptNumber}</p>
-            </div>
+      <div 
+        ref={receiptRef}
+        className="bg-white p-6 border border-gray-200 rounded-lg"
+      >
+        <div className="header flex items-center gap-4 mb-6">
+          <img src="/logo.jpeg" alt="Merchant Cup Logo" className="w-16 h-16 rounded-lg" />
+          <div>
+            <h1 className="text-2xl font-bold text-blue-800">Merchants Cup 2025</h1>
+            <p className="text-gray-600">RCGC Bowling Section</p>
           </div>
         </div>
-        
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row justify-between mb-6">
+
+        <div className="receipt-section">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Registration Details</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-500">Company</p>
-              <p className="font-medium text-gray-900">{data.companyName}</p>
-              <p className="text-sm text-gray-500 mt-2 whitespace-pre-line">{data.address}</p>
-            </div>
-            <div className="mt-4 md:mt-0 md:text-right">
               <p className="text-sm text-gray-500">Registration Date</p>
-              <p className="font-medium text-gray-900 flex items-center gap-1 md:justify-end">
-                <Calendar size={16} className="text-gray-400" /> 
-                {format(registrationDate, 'dd MMMM yyyy')}
-              </p>
-              <div className="mt-2">
-                <p className="text-sm text-gray-500">Contact Information</p>
-                <p className="font-medium text-gray-900 flex items-center gap-1 md:justify-end">
-                  <Phone size={16} className="text-gray-400" /> 
-                  {data.contactPhone}
+              <p className="font-medium">{formatDate(data.date)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Payment Status</p>
+              <p>{getPaymentStatusDisplay()}</p>
+              
+              {data.paymentDetails.status === 'pending' && data.paymentDetails.committeeMember && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Please pay to: {data.paymentDetails.committeeMember.name}
                 </p>
-                <p className="font-medium text-gray-900 flex items-center gap-1 md:justify-end">
-                  <Mail size={16} className="text-gray-400" /> 
-                  {data.contactEmail}
+              )}
+              
+              {data.paymentDetails.referredBy && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Referred by: {data.paymentDetails.referredBy}
                 </p>
-              </div>
+              )}
             </div>
           </div>
+        </div>
 
-          <div className="border-t border-gray-200 pt-6">
-            <h4 className="font-medium text-gray-900 mb-4">Registered Teams</h4>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+        <div className="receipt-section">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Company Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">Company Name</p>
+              <p className="font-medium">{data.companyName}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Contact Information</p>
+              <p className="font-medium">{data.contactPhone}</p>
+              <p className="text-sm text-gray-600">{data.contactEmail}</p>
+            </div>
+            <div className="md:col-span-2">
+              <p className="text-sm text-gray-500">Address</p>
+              <p className="font-medium">{data.address}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="receipt-section">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Team Details</h3>
+          {data.teams.map((team, index) => (
+            <div key={index} className="mb-4 p-4 border border-gray-100 rounded-md bg-gray-50">
+              <h4 className="font-medium mb-2">Team {index + 1}</h4>
+              <table className="w-full">
                 <thead>
-                  <tr>
-                    <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
-                    <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Players</th>
+                  <tr className="bg-gray-100">
+                    <th className="py-2 px-4 text-left">Role</th>
+                    <th className="py-2 px-4 text-left">Name</th>
+                    <th className="py-2 px-4 text-left">Contact</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {data.teams.map((team, index) => (
-                    <tr key={index}>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        Team {index + 1}
-                      </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div>
-                          <p className="font-medium text-gray-900">{team.player1.name}</p>
-                          <p className="text-xs text-gray-500">{team.player1.mobile}</p>
-                        </div>
-                        <div className="mt-2">
-                          <p className="font-medium text-gray-900">{team.player2.name}</p>
-                          <p className="text-xs text-gray-500">{team.player2.mobile}</p>
-                        </div>
-                        <div className="mt-2">
-                          <p className="font-medium text-gray-900">{team.player3.name}</p>
-                          <p className="text-xs text-gray-500">{team.player3.mobile}</p>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                <tbody>
+                  <tr>
+                    <td className="py-2 px-4 border-t">Player 1</td>
+                    <td className="py-2 px-4 border-t">{team.player1.name}</td>
+                    <td className="py-2 px-4 border-t">{team.player1.mobile}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-4 border-t">Player 2</td>
+                    <td className="py-2 px-4 border-t">{team.player2.name}</td>
+                    <td className="py-2 px-4 border-t">{team.player2.mobile}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-4 border-t">Player 3</td>
+                    <td className="py-2 px-4 border-t">{team.player3.name}</td>
+                    <td className="py-2 px-4 border-t">{team.player3.mobile}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
-          </div>
+          ))}
+        </div>
 
-          <div className="border-t border-gray-200 pt-6 mt-6">
-            <div className="flex flex-col md:flex-row justify-between items-start">
-              <div>
-                <p className="text-sm text-gray-500">Captain</p>
-                <p className="font-medium text-gray-900">{data.captainName}</p>
-                <p className="text-sm text-gray-500">{data.designation}</p>
-              </div>
-              <div className="mt-4 md:mt-0 bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">Registration Fee</p>
-                  <p className="text-lg font-bold text-gray-900">₹{data.totalAmount}</p>
-                  <p className="text-xs text-green-600 font-medium">PAID</p>
-                </div>
-              </div>
+        <div className="receipt-section">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Captain Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">Captain Name</p>
+              <p className="font-medium">{data.captainName}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Designation</p>
+              <p className="font-medium">{data.designation}</p>
             </div>
           </div>
-          
-          <div className="border-t border-gray-200 pt-6 mt-6">
-            <div className="text-center text-sm text-gray-500">
-              <p>Thank you for registering for the Merchant Cup Lawn Bowls Tournament 2025.</p>
-              <p className="mt-2">For any queries, please contact RCGC Bowling Section.</p>
-              <p className="mt-4 text-xs">Venue: RCGC Maidan Pavilion | Tournament Starts: May 9, 2025</p>
+        </div>
+
+        <div className="receipt-section">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Payment Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">Teams Registered</p>
+              <p className="font-medium">{data.numTeams}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Total Amount</p>
+              <p className="font-medium text-blue-600">₹{data.totalAmount.toLocaleString()}</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        <div className="mt-6 border-t pt-4 text-center text-sm text-gray-600">
+          <p>For any queries, please contact the tournament committee.</p>
+          <p className="mt-1">Thank you for participating in the Merchants Cup 2025!</p>
+        </div>
+      </div>
     </div>
   );
 };

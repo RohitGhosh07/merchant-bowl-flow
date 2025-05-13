@@ -25,6 +25,7 @@ export interface PaymentDetails {
   amount: number;
   transactionId?: string;
   committeeMember?: CommitteeMember;
+  referredBy?: string;
   paymentDate: string;
 }
 

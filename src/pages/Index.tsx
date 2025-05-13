@@ -8,15 +8,24 @@ import { CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ReceiptPage from "@/components/ReceiptPage";
+import PaymentSelection from "@/components/PaymentSelection";
 
 const Index = () => {
-  const [currentStep, setCurrentStep] = useState<"form" | "receipt">("form");
+  const [currentStep, setCurrentStep] = useState<"form" | "payment" | "receipt">("form");
   const [formData, setFormData] = useState<FormData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   
   const handleFormSubmit = async (data: FormData) => {
     setFormData(data);
+    // Move to the payment selection page
+    setCurrentStep("payment");
+    window.scrollTo(0, 0);
+  };
+
+  const handlePaymentComplete = async (paymentStatus: string, referenceInfo?: Record<string, string>) => {
+    if (!formData) return;
+    
     setIsProcessing(true);
     
     try {
@@ -27,17 +36,17 @@ const Index = () => {
       });
       
       // Add registration data to Supabase
-      const registrationPromises = data.teams.map(async (team, i) => {
+      const registrationPromises = formData.teams.map(async (team, i) => {
         const teamNumber = `Team ${i + 1}`;
         
         try {
           const { error } = await supabase.from("registrations").insert({
-            company_name: data.companyName,
+            company_name: formData.companyName,
             team_number: teamNumber,
             player1_name: team.player1.name,
             player2_name: team.player2.name,
-            captain_name: data.captainName,
-            payment_status: "Paid"
+            captain_name: formData.captainName,
+            payment_status: paymentStatus
           });
           
           if (error) {
@@ -55,10 +64,25 @@ const Index = () => {
       // Wait for all registrations to complete
       await Promise.all(registrationPromises);
       
+      // Update form data with payment status
+      setFormData({
+        ...formData,
+        paymentDetails: {
+          ...formData.paymentDetails,
+          status: paymentStatus === "Paid" ? "completed" : "pending",
+          ...(referenceInfo && {
+            committeeMember: committeeMembers.find(m => m.id === referenceInfo.committeeMember),
+            referredBy: referenceInfo.referredBy
+          })
+        }
+      });
+      
       // Show success toast for registration
       toast({
         title: "Registration Successful",
-        description: "Your registration has been completed successfully.",
+        description: paymentStatus === "Paid" 
+          ? "Your registration and payment have been completed successfully." 
+          : "Your registration has been submitted. Please complete the payment with the selected committee member.",
       });
       
       // Proceed to receipt
@@ -75,6 +99,20 @@ const Index = () => {
       setIsProcessing(false);
     }
   };
+
+  // Reference to committee members (needs to be in scope for the payment handler)
+  const committeeMembers = [
+    { id: '1', name: 'Sanjay Lakhotia', designation: 'Committee Member', phone: '' },
+    { id: '2', name: 'Vikram Poddar', designation: 'Committee Member', phone: '' },
+    { id: '3', name: 'Rajesh Kankaria', designation: 'Committee Member', phone: '' },
+    { id: '4', name: 'Prashant Mehra', designation: 'Committee Member', phone: '' },
+    { id: '5', name: 'Timir Roy', designation: 'Committee Member', phone: '' },
+    { id: '6', name: 'Chandan Shroff', designation: 'Committee Member', phone: '' },
+    { id: '7', name: 'Somenath Chatterjee', designation: 'Committee Member', phone: '' },
+    { id: '8', name: 'Devesh Srivastava', designation: 'Committee Member', phone: '' },
+    { id: '9', name: 'Samit Malhotra', designation: 'Committee Member', phone: '' },
+    { id: '10', name: 'Agnesh Kumar Verma', designation: 'Committee Member', phone: '' },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -120,6 +158,15 @@ const Index = () => {
         {currentStep === "form" && (
           <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
             <RegistrationForm onSubmit={handleFormSubmit} isProcessing={isProcessing} />
+          </div>
+        )}
+        
+        {currentStep === "payment" && formData && (
+          <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
+            <PaymentSelection 
+              formData={formData} 
+              onComplete={handlePaymentComplete} 
+            />
           </div>
         )}
         
