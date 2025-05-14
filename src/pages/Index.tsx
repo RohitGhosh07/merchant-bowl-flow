@@ -9,8 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import ReceiptPage from "@/components/ReceiptPage";
 import PaymentSelection from "@/components/PaymentSelection";
 
-// Import logo image and account for base path
+// Import logo paths and account for base path
 const logoPath = import.meta.env.BASE_URL + 'logo.jpeg';
+const rcgcLogoPath = import.meta.env.BASE_URL + 'rcgc.jpeg';
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState<"form" | "payment" | "receipt">("form");
@@ -132,25 +133,34 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <img
-            alt="RCGC Logo"
-            src={logoPath}
-            className="w-12 h-12 rounded-lg shadow-sm"
-          />
-          <div className="flex-1">
-            <h1 className="text-2xl md:text-3xl font-serif font-bold text-gray-800 text-center md:text-left">
-              38th Merchants Cup 2025-26
-            </h1>
-            <p className="text-sm text-gray-500 hidden md:block">RCGC Bowling Section</p>
+      <header className="bg-white shadow-md border-b sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <img
+                alt="Merchant Cup Logo"
+                src={logoPath}
+                className="w-14 h-14 rounded-lg shadow-sm object-cover"
+              />
+              <div className="flex-1">
+                <h1 className="text-xl md:text-2xl font-semibold text-gray-800">
+                  38th Merchants Cup 2025-26
+                </h1>
+                <p className="text-sm text-gray-600">RCGC Bowling Section</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="hidden md:block text-right">
+                <p className="text-sm font-medium text-gray-700">Royal Calcutta Golf Club</p>
+                <p className="text-xs text-gray-500">Bowling Section</p>
+              </div>
+              <img 
+                src={rcgcLogoPath}
+                alt="RCGC Logo"
+                className="w-12 h-12 rounded-lg shadow-sm object-cover"
+              />
+            </div>
           </div>
-          <div className="border-l h-12 border-gray-200"></div>
-          <img 
-            src="/rcgc.jpeg" 
-            alt="RCGC Logo" 
-            className="w-10 h-10 rounded-full shadow-sm hidden md:block"
-          />
         </div>
       </header>
 
