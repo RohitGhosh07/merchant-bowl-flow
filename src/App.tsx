@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Registrations from "./pages/Registrations";
+import Admin from "./pages/Admin";
+import AdminDashboard from "./components/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -13,10 +15,11 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter basename="/merchants_cup/">
-        <TooltipProvider>
-          <Routes>
+        <TooltipProvider>          <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/registrations" element={<Registrations />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />

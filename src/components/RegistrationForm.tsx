@@ -21,11 +21,11 @@ interface RegistrationFormProps {
 const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormProps) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<FormData>({
-    companyName: "",
+  const [formData, setFormData] = useState<FormData>({    companyName: "",
     contactPhone: "",
     contactEmail: "",
-    address: "",    
+    address: "",
+    gstNumber: "",
     teams: [
       {
         player1: { name: "", mobile: "", email: "", role: "captain" },

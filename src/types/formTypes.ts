@@ -1,4 +1,3 @@
-
 export interface TeamMember {
   name: string;
   mobile: string;
@@ -34,6 +33,7 @@ export interface FormData {
   contactPhone: string;
   contactEmail: string;
   address: string;
+  gstNumber: string; // Add GST number field
   teams: Team[];
   captainName: string;
   designation: string;  rulesAccepted: boolean;

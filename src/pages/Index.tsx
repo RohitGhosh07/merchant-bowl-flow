@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ReceiptPage from "@/components/ReceiptPage";
 import PaymentSelection from "@/components/PaymentSelection";
+import { sendRegistrationEmail } from "@/services/emailService";
 
 // Import logo paths and account for base path
 const logoPath = import.meta.env.BASE_URL + 'logo.jpeg';
@@ -46,8 +47,7 @@ const Index = () => {
         title: "Processing Registration",
         description: "Please wait while we process your registration...",
       });
-      
-      // Add registration data to Supabase
+        // Add registration data to Supabase and send emails
       const registrationPromises = formData.teams.map(async (team, i) => {
         const teamNumber = `Team ${i + 1}`;
         
@@ -64,6 +64,14 @@ const Index = () => {
           if (error) {
             console.error("Error inserting registration data:", error);
             throw error;
+          }
+
+          // Send confirmation emails
+          try {
+            await sendRegistrationEmail(formData);
+          } catch (emailError) {
+            console.error("Error sending confirmation emails:", emailError);
+            // Don't throw here - we want to continue even if email fails
           }
           
           return true;
@@ -196,9 +204,8 @@ const Index = () => {
 
       <footer className="bg-bowlsNavy text-white py-6 mt-8">
         <div className="container mx-auto px-4 text-center">
-          <p>RCGC Bowling Section</p>
-          <p className="mt-2 text-sm text-gray-300">
-            Venue: RCGC Maidan Pavilion | Tournament Starts: May 9, 2025
+          <p>RCGC Bowling Section</p>          <p className="mt-2 text-sm text-gray-300">
+            Venue: RCGC Maidan Tent | Tournament Starts: June 15, 2025
           </p>
         </div>
       </footer>

@@ -1,4 +1,3 @@
-
 import { FormData } from "@/types/formTypes";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +36,18 @@ const CompanyInfoStep = ({ formData, handleInputChange }: CompanyInfoStepProps) 
               placeholder="Enter your company address"
               className="mt-1.5"
               rows={3}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="gstNumber" className="text-gray-700 font-medium">GST Number*</Label>
+            <Input
+              id="gstNumber"
+              name="gstNumber"
+              value={formData.gstNumber}
+              onChange={handleInputChange}
+              placeholder="Enter your GST number"
+              className="mt-1.5"
               required
             />
           </div>

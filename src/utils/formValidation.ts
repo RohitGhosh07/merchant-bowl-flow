@@ -10,11 +10,11 @@ export const validateStep = (
   toast: ToastFunction
 ): boolean => {
   switch (step) {
-    case 0:
-      if (!formData.companyName.trim() || !formData.contactPhone.trim() || !formData.contactEmail.trim() || !formData.address.trim()) {
+    case 0:      if (!formData.companyName.trim() || !formData.contactPhone.trim() || 
+          !formData.contactEmail.trim() || !formData.address.trim() || !formData.gstNumber.trim()) {
         toast({
           title: "Missing Information",
-          description: "Please fill in all the required fields.",
+          description: "Please fill in all the required fields including GST number.",
           variant: "destructive",
         });
         return false;
