@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { FormData } from '@/types/formTypes';
-import { PrinterIcon } from 'lucide-react';
+import { PrinterIcon, DownloadIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
 
 // Import logo image and account for base path
 const logoPath = import.meta.env.BASE_URL + 'logo.jpeg';
@@ -14,6 +15,15 @@ interface ReceiptPageProps {
 const ReceiptPage = ({ data }: ReceiptPageProps) => {
   const receiptRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  // Auto-download receipt when component mounts
+  useEffect(() => {
+    handlePrint();
+    toast({
+      title: "Receipt Downloaded",
+      description: "Your registration receipt has been automatically downloaded.",
+    });
+  }, []);
   
   const handlePrint = () => {
     const printContents = receiptRef.current?.innerHTML;
@@ -23,32 +33,36 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
       document.body.innerHTML = `
         <html>
           <head>
-            <title>Registration Receipt</title>
+            <title>Registration Receipt - ${data.tracking_id}</title>
             <style>
-              body { font-family: Arial, sans-serif; padding: 20px; }
-              h1 { color: #1e40af; }
+              body { font-family: Arial, sans-serif; padding: 20px; margin: 0; }
+              h1 { color: #1e40af; margin: 0; }
               .header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
               .logo { width: 80px; height: 80px; }
-              .receipt-section { margin-bottom: 20px; }
+              .receipt-section { margin-bottom: 20px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; }
+              .tracking-section { background-color: #1e40af; color: white; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
               .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
               table { width: 100%; border-collapse: collapse; margin-top: 15px; }
               table, th, td { border: 1px solid #e2e8f0; }
               th, td { padding: 8px 12px; text-align: left; }
               th { background-color: #f1f5f9; }
-              .footer { margin-top: 40px; text-align: center; font-size: 14px; color: #64748b; }
+              .footer { margin-top: 40px; text-align: center; font-size: 14px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 20px; }
               .payment-status { padding: 4px 8px; border-radius: 4px; display: inline-block; }
               .completed { background-color: #dcfce7; color: #166534; }
               .pending { background-color: #fef3c7; color: #92400e; }
               @media print {
                 .no-print { display: none; }
+                .receipt-section { break-inside: avoid; }
               }
+              .registration-id { font-size: 24px; font-weight: bold; letter-spacing: 2px; }
             </style>
           </head>
           <body>
             ${printContents}
             <div class="footer">
               <p>RCGC Bowling Section | 38th Merchants Cup 2025-26</p>
-              <p>For any queries, please contact the tournament committee.</p>
+              <p>For any queries, please contact: tournament@rcgc.in | +91 98765 43210</p>
+              <p>Registration ID: ${data.tracking_id}</p>
             </div>
           </body>
         </html>
@@ -65,7 +79,9 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
     return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long', 
-      day: 'numeric' 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -85,6 +101,10 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
         <h2 className="text-2xl font-bold text-gray-800">Registration Receipt</h2>
         <div className="flex gap-3">
           <Button onClick={handlePrint} className="flex items-center gap-2">
+            <DownloadIcon size={16} />
+            Download Receipt
+          </Button>
+          <Button onClick={() => handlePrint()} className="flex items-center gap-2">
             <PrinterIcon size={16} />
             Print Receipt
           </Button>
@@ -94,11 +114,14 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
         </div>
       </div>
 
-      <div 
-        ref={receiptRef}
-        className="bg-white p-6 border border-gray-200 rounded-lg"
-      >
-        <div className="header flex items-center gap-4 mb-6">
+      <div ref={receiptRef} className="bg-white p-6 border border-gray-200 rounded-lg space-y-6">
+        <div className="tracking-section bg-blue-800 text-white p-4 rounded-lg text-center">
+          <p className="text-sm uppercase tracking-wider mb-1">Registration ID</p>
+          <p className="registration-id font-mono">{data.tracking_id}</p>
+          <p className="text-sm mt-1">Keep this ID for future reference</p>
+        </div>
+
+        <div className="header flex items-center gap-4">
           <img src={logoPath} alt="Merchant Cup Logo" className="w-16 h-16 rounded-lg" />
           <div>
             <h1 className="text-2xl font-bold text-blue-800">38th Merchants Cup 2025-26</h1>
@@ -106,9 +129,10 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
           </div>
         </div>
 
-        <div className="receipt-section">
+        <div className="receipt-section bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Registration Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">            <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
               <p className="text-sm text-gray-500">Registration Date</p>
               <p className="font-medium">{formatDate(data.paymentDetails.paymentDate)}</p>
             </div>
@@ -131,12 +155,15 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
           </div>
         </div>
 
-        <div className="receipt-section">
+        <div className="receipt-section bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Company Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500">Company Name</p>
               <p className="font-medium">{data.companyName}</p>
+              {data.gstNumber && (
+                <p className="text-sm text-gray-600 mt-1">GST: {data.gstNumber}</p>
+              )}
             </div>
             <div>
               <p className="text-sm text-gray-500">Contact Information</p>
@@ -150,10 +177,10 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
           </div>
         </div>
 
-        <div className="receipt-section">
+        <div className="receipt-section bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Team Details</h3>
           {data.teams.map((team, index) => (
-            <div key={index} className="mb-4 p-4 border border-gray-100 rounded-md bg-gray-50">
+            <div key={index} className="mb-4 p-4 border border-gray-100 rounded-md bg-white">
               <h4 className="font-medium mb-2">Team {index + 1}</h4>
               <table className="w-full">
                 <thead>
@@ -161,6 +188,7 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
                     <th className="py-2 px-4 text-left">Role</th>
                     <th className="py-2 px-4 text-left">Name</th>
                     <th className="py-2 px-4 text-left">Contact</th>
+                    <th className="py-2 px-4 text-left">Email</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -168,24 +196,29 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
                     <td className="py-2 px-4 border-t">Player 1</td>
                     <td className="py-2 px-4 border-t">{team.player1.name}</td>
                     <td className="py-2 px-4 border-t">{team.player1.mobile}</td>
+                    <td className="py-2 px-4 border-t">{team.player1.email}</td>
                   </tr>
                   <tr>
                     <td className="py-2 px-4 border-t">Player 2</td>
                     <td className="py-2 px-4 border-t">{team.player2.name}</td>
                     <td className="py-2 px-4 border-t">{team.player2.mobile}</td>
+                    <td className="py-2 px-4 border-t">{team.player2.email}</td>
                   </tr>
-                  <tr>
-                    <td className="py-2 px-4 border-t">Player 3</td>
-                    <td className="py-2 px-4 border-t">{team.player3.name}</td>
-                    <td className="py-2 px-4 border-t">{team.player3.mobile}</td>
-                  </tr>
+                  {team.player3 && (
+                    <tr>
+                      <td className="py-2 px-4 border-t">Player 3</td>
+                      <td className="py-2 px-4 border-t">{team.player3.name}</td>
+                      <td className="py-2 px-4 border-t">{team.player3.mobile}</td>
+                      <td className="py-2 px-4 border-t">{team.player3.email}</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           ))}
         </div>
 
-        <div className="receipt-section">
+        <div className="receipt-section bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Captain Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -196,10 +229,18 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
               <p className="text-sm text-gray-500">Designation</p>
               <p className="font-medium">{data.designation}</p>
             </div>
+            <div>
+              <p className="text-sm text-gray-500">Contact Number</p>
+              <p className="font-medium">{data.contactPhone}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Email</p>
+              <p className="font-medium">{data.contactEmail}</p>
+            </div>
           </div>
         </div>
 
-        <div className="receipt-section">
+        <div className="receipt-section bg-gray-50">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Payment Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -209,6 +250,14 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
             <div>
               <p className="text-sm text-gray-500">Total Amount</p>
               <p className="font-medium text-blue-600">₹{data.totalAmount.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Amount per Team</p>
+              <p className="font-medium">₹10,030</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Payment Method</p>
+              <p className="font-medium">{data.paymentDetails.status === 'completed' ? 'Online Payment' : 'Offline Payment'}</p>
             </div>
           </div>
         </div>
