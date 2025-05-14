@@ -1,9 +1,11 @@
-
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { FormData } from '@/types/formTypes';
 import { PrinterIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+// Import logo image and account for base path
+const logoPath = import.meta.env.BASE_URL + 'logo.jpeg';
 
 interface ReceiptPageProps {
   data: FormData;
@@ -97,7 +99,7 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
         className="bg-white p-6 border border-gray-200 rounded-lg"
       >
         <div className="header flex items-center gap-4 mb-6">
-          <img src="/logo.jpeg" alt="Merchant Cup Logo" className="w-16 h-16 rounded-lg" />
+          <img src={logoPath} alt="Merchant Cup Logo" className="w-16 h-16 rounded-lg" />
           <div>
             <h1 className="text-2xl font-bold text-blue-800">38th Merchants Cup 2025-26</h1>
             <p className="text-gray-600">RCGC Bowling Section</p>

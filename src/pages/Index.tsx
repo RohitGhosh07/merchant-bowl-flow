@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import RegistrationForm from "@/components/RegistrationForm";
@@ -9,6 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ReceiptPage from "@/components/ReceiptPage";
 import PaymentSelection from "@/components/PaymentSelection";
+
+// Import logo image and account for base path
+const logoPath = import.meta.env.BASE_URL + 'logo.jpeg';
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState<"form" | "payment" | "receipt">("form");
@@ -130,41 +132,25 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      <header className="bg-white border-b py-4 sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-4">
-                <img 
-                  src="/logo.jpeg" 
-                  alt="Merchant Cup Logo" 
-                  className="w-12 h-12 rounded-lg shadow-sm"
-                />
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-serif font-bold text-gray-800 text-center md:text-left">
-                    38th Merchants Cup 2025-26
-                  </h1>
-                  <p className="text-sm text-gray-500 hidden md:block">RCGC Bowling Section</p>
-                </div>
-              </div>
-              <div className="border-l h-12 border-gray-200"></div>
-              <img 
-                src="/rcgc.jpeg" 
-                alt="RCGC Logo" 
-                className="w-10 h-10 rounded-full shadow-sm hidden md:block"
-              />
-            </div>
-            <div className="flex items-center gap-6">
-              <h2 className="text-lg font-medium bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                Lawn Bowls Tournament 2025
-              </h2>
-              <Link to="/registrations">
-                <Button variant="outline" className="bg-white border-blue-600 text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-medium transition-colors">
-                  View Registrations
-                </Button>
-              </Link>
-            </div>
+      <header className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+          <img
+            alt="RCGC Logo"
+            src={logoPath}
+            className="w-12 h-12 rounded-lg shadow-sm"
+          />
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-serif font-bold text-gray-800 text-center md:text-left">
+              38th Merchants Cup 2025-26
+            </h1>
+            <p className="text-sm text-gray-500 hidden md:block">RCGC Bowling Section</p>
           </div>
+          <div className="border-l h-12 border-gray-200"></div>
+          <img 
+            src="/rcgc.jpeg" 
+            alt="RCGC Logo" 
+            className="w-10 h-10 rounded-full shadow-sm hidden md:block"
+          />
         </div>
       </header>
 

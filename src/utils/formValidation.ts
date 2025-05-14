@@ -1,4 +1,3 @@
-
 import { FormData } from "@/types/formTypes";
 import { toast as toastFunction } from "@/hooks/use-toast";
 
@@ -55,10 +54,10 @@ export const validateStep = (
       });
       return valid;
     case 2:
-      if (!formData.captainName.trim() || !formData.designation.trim() || !formData.date) {
+      if (!formData.captainName.trim() || !formData.designation.trim()) {
         toast({
           title: "Missing Captain Details",
-          description: "Please complete the captain's information.",
+          description: "Please enter captain's name and designation.",
           variant: "destructive",
         });
         return false;
