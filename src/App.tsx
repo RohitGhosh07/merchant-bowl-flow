@@ -8,6 +8,7 @@ import Registrations from "./pages/Registrations";
 import Admin from "./pages/Admin";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import TrackRegistration from "./pages/TrackRegistration";
 
 const queryClient = new QueryClient();
 
@@ -15,8 +16,10 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter basename="/merchants_cup/">
-        <TooltipProvider>          <Routes>
+        <TooltipProvider>
+          <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/track" element={<TrackRegistration />} />
             <Route path="/registrations" element={<Registrations />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />

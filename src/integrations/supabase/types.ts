@@ -93,7 +93,7 @@ export type Tables<
   }
     ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -192,3 +192,15 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+export interface Registration {
+  id: string;
+  created_at: string;
+  company_name: string;
+  team_number: string;
+  player1_name: string;
+  player2_name: string;
+  captain_name: string;
+  payment_status: "Paid" | "Pending";
+  timestamp: string;
+}

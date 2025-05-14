@@ -36,10 +36,12 @@ export interface FormData {
   gstNumber: string; // Add GST number field
   teams: Team[];
   captainName: string;
-  designation: string;  rulesAccepted: boolean;
+  designation: string;
+  rulesAccepted: boolean;
   numTeams: number;
   totalAmount: number;
   paymentDetails: PaymentDetails;
+  tracking_id?: string; // Optional because it's not available until after registration
 }
 
 export interface GoogleSheetsIntegration {
