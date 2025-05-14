@@ -44,42 +44,65 @@ const Index = () => {
     setIsProcessing(true);
     
     try {
-      // Show a processing toast
       toast({
         title: "Processing Registration",
         description: "Please wait while we process your registration...",
       });
 
-      // Generate tracking ID for the registration
       const tracking_id = await generateTrackingId();
-        // First, handle all registrations
+      
       const registrationPromises = formData.teams.map(async (team, i) => {
-        const teamNumber = `Team ${i + 1}`;        const { error } = await supabase.from("registrations").insert({
-          id: tracking_id, // Use tracking_id as the primary key
-          company_name: formData.companyName,
-          team_number: teamNumber,
-          player1_name: team.player1.name,
-          player2_name: team.player2.name,
-          captain_name: formData.captainName,
-          payment_status: paymentStatus
-        });
+        const teamNumber = `Team ${i + 1}`;
         
-        if (error) {
-          console.error("Error inserting registration data:", error);
+        try {
+          const { error } = await supabase.from("registrations").insert({
+            id: tracking_id,
+            company_name: formData.companyName,
+            team_number: teamNumber,
+            player1_name: team.player1.name,
+            player2_name: team.player2.name,
+            player3_name: team.player3.name,
+            player1_mobile: team.player1.mobile,
+            player2_mobile: team.player2.mobile,
+            player3_mobile: team.player3.mobile,
+            player1_email: team.player1.email || null,
+            player2_email: team.player2.email || null,
+            player3_email: team.player3.email || null,
+            captain_name: formData.captainName,
+            captain_phone: formData.contactPhone,
+            captain_email: formData.contactEmail,
+            payment_status: paymentStatus,
+            payment_method: paymentStatus === "Paid" ? "online" : "offline",
+            payment_reference: referenceInfo?.transactionId || null,
+            payment_date: paymentStatus === "Paid" ? new Date().toISOString() : null,
+            amount: formData.totalAmount,
+            gst_number: formData.gstNumber || null,
+            committee_member: formData.paymentDetails?.committeeMember?.name || null,
+            registration_status: "active",
+            contact_phone: formData.contactPhone,
+            contact_email: formData.contactEmail,
+            contact_address: formData.address,
+            captain_designation: formData.designation
+          });
+          
+          if (error) {
+            console.error("Error inserting registration data:", error);
+            throw error;
+          }
+
+          return true;
+        } catch (error) {
+          console.error("Error with Supabase:", error);
           throw error;
         }
-        return true;
       });
 
-      // Wait for all registrations to complete
       await Promise.all(registrationPromises);
 
-      // After successful registration, try to send emails
       try {
         await sendRegistrationEmail({ ...formData, tracking_id });
       } catch (emailError) {
         console.error("Error sending confirmation emails:", emailError);
-        // Don't throw error for email failure, just show warning
         toast({
           title: "Email Delivery Issue",
           description: "Registration is complete, but there was an issue sending the confirmation email. Your tracking ID is: " + tracking_id,
@@ -87,9 +110,6 @@ const Index = () => {
         });
       }
       
-      await Promise.all(registrationPromises);
-      
-      // Update form data with payment status and tracking ID
       setFormData({
         ...formData,
         tracking_id,
@@ -99,7 +119,6 @@ const Index = () => {
         }
       });
       
-      // Show success toast for registration
       toast({
         title: "Registration Successful",
         description: `Your registration is complete! Your tracking ID is: ${tracking_id}. ${
@@ -107,14 +126,14 @@ const Index = () => {
             ? "Payment has been completed successfully."
             : "Please complete the payment with the selected committee member."
         }`,
+        variant: "success"
       });
       
-      // Proceed to receipt
       setCurrentStep("receipt");
-      window.scrollTo(0, 0);    } catch (error) {
+      window.scrollTo(0, 0);
+    } catch (error) {
       console.error("Registration processing error:", error);
       
-      // Show error toast but with specific message for different payment types
       toast({
         title: "Registration Failed",
         description: paymentStatus === "Pending"
@@ -122,8 +141,6 @@ const Index = () => {
           : "There was an error processing your registration and payment. Please try again.",
         variant: "destructive",
       });
-      
-      // Don't proceed to receipt page if there was an error
       return;
     } finally {
       setIsProcessing(false);
