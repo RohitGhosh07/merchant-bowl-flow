@@ -1,1 +1,35 @@
+
 project_id = "dajzojdlckxmqcxlvzsw"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+port = 54322
+
+[db.major_version]
+detect_version_with_psql = true
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost"
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+
+[auth.additional_redirect_urls]
+local_urls = ["http://localhost:3000", "https://localhost:3000"]
+
+[functions]
+enabled = true

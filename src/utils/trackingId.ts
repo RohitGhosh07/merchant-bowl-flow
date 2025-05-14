@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -11,14 +12,22 @@ export const generateTrackingId = async (): Promise<string> => {
   while (!isUnique) {
     // Generate a random 6-digit number
     id = Math.floor(100000 + Math.random() * 900000).toString();
-      // Check if this ID already exists in the database
+    
+    // Check if this ID already exists in the database
     const { data, error } = await supabase
       .from("registrations")
       .select("id")
       .eq("id", id)
       .maybeSingle();
     
-    if (!data && !error) {
+    if (error) {
+      console.error("Error checking ID uniqueness:", error);
+      // Generate a new ID if there was an error
+      continue;
+    }
+    
+    // If no data was found, the ID is unique
+    if (!data) {
       isUnique = true;
     }
   }

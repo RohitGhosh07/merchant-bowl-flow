@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import RegistrationForm from "@/components/RegistrationForm";
@@ -82,7 +83,8 @@ const Index = () => {
             contact_phone: formData.contactPhone,
             contact_email: formData.contactEmail,
             contact_address: formData.address,
-            captain_designation: formData.designation
+            captain_designation: formData.designation,
+            timestamp: new Date().toISOString()
           });
           
           if (error) {
