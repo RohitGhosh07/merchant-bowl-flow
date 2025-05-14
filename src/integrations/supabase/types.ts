@@ -9,7 +9,102 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      registrations: {
+        Row: {
+          amount: number | null
+          captain_designation: string | null
+          captain_email: string | null
+          captain_name: string
+          captain_phone: string | null
+          committee_member: string | null
+          company_name: string
+          contact_address: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          gst_number: string | null
+          id: string
+          payment_date: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          payment_status: string
+          player1_email: string | null
+          player1_mobile: string | null
+          player1_name: string
+          player2_email: string | null
+          player2_mobile: string | null
+          player2_name: string
+          player3_email: string | null
+          player3_mobile: string | null
+          player3_name: string | null
+          registration_status: string | null
+          team_number: string
+          timestamp: string | null
+        }
+        Insert: {
+          amount?: number | null
+          captain_designation?: string | null
+          captain_email?: string | null
+          captain_name: string
+          captain_phone?: string | null
+          committee_member?: string | null
+          company_name: string
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          gst_number?: string | null
+          id: string
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          payment_status?: string
+          player1_email?: string | null
+          player1_mobile?: string | null
+          player1_name: string
+          player2_email?: string | null
+          player2_mobile?: string | null
+          player2_name: string
+          player3_email?: string | null
+          player3_mobile?: string | null
+          player3_name?: string | null
+          registration_status?: string | null
+          team_number: string
+          timestamp?: string | null
+        }
+        Update: {
+          amount?: number | null
+          captain_designation?: string | null
+          captain_email?: string | null
+          captain_name?: string
+          captain_phone?: string | null
+          committee_member?: string | null
+          company_name?: string
+          contact_address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          gst_number?: string | null
+          id?: string
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          payment_status?: string
+          player1_email?: string | null
+          player1_mobile?: string | null
+          player1_name?: string
+          player2_email?: string | null
+          player2_mobile?: string | null
+          player2_name?: string
+          player3_email?: string | null
+          player3_mobile?: string | null
+          player3_name?: string | null
+          registration_status?: string | null
+          team_number?: string
+          timestamp?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
