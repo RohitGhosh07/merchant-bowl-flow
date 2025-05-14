@@ -38,17 +38,15 @@ const CompanyInfoStep = ({ formData, handleInputChange }: CompanyInfoStepProps) 
               rows={3}
               required
             />
-          </div>
-          <div>
-            <Label htmlFor="gstNumber" className="text-gray-700 font-medium">GST Number*</Label>
+          </div>          <div>
+            <Label htmlFor="gstNumber" className="text-gray-700 font-medium">GST Number (optional)</Label>
             <Input
               id="gstNumber"
               name="gstNumber"
               value={formData.gstNumber}
               onChange={handleInputChange}
-              placeholder="Enter your GST number"
+              placeholder="Enter your GST number (if applicable)"
               className="mt-1.5"
-              required
             />
           </div>
         </div>

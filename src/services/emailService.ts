@@ -41,9 +41,8 @@ const generateEmailHTML = (formData: FormData): string => {
           
           <p>Thank you for registering for the 38th RCGC Merchants Cup Lawn Bowls Tournament 2025-26. Your registration has been successfully processed.</p>
           
-          <h2>Registration Details:</h2>          <ul>
-            <li>Company: <span class="highlight">${formData.companyName}</span></li>
-            <li>GST Number: <span class="highlight">${formData.gstNumber}</span></li>
+          <h2>Registration Details:</h2>          <ul>            <li>Company: <span class="highlight">${formData.companyName}</span></li>
+            ${formData.gstNumber ? `<li>GST Number: <span class="highlight">${formData.gstNumber}</span></li>` : ''}
             <li>Number of Teams: <span class="highlight">${formData.numTeams}</span></li>
             <li>Total Amount: <span class="highlight">₹${formData.totalAmount}</span></li>
             <li>Payment Method: <span class="highlight">${formData.paymentDetails.method.toUpperCase()}</span></li>
@@ -107,10 +106,9 @@ export const sendRegistrationEmail = async (formData: FormData): Promise<boolean
         Content: {
           Body: [{
             ContentType: 'HTML',
-            Content: `
-              <h2>New Team Registration - 38th Merchants Cup 2025-26</h2>
+            Content: `              <h2>New Team Registration - 38th Merchants Cup 2025-26</h2>
               <p><strong>Company:</strong> ${formData.companyName}</p>
-              <p><strong>GST Number:</strong> ${formData.gstNumber}</p>
+              ${formData.gstNumber ? `<p><strong>GST Number:</strong> ${formData.gstNumber}</p>` : ''}
               <p><strong>Contact:</strong> ${formData.contactPhone}</p>
               <p><strong>Email:</strong> ${formData.contactEmail}</p>
               <p><strong>Teams Registered:</strong> ${formData.numTeams}</p>

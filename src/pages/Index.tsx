@@ -83,22 +83,12 @@ const Index = () => {
       
       // Wait for all registrations to complete
       await Promise.all(registrationPromises);
-      
-      // Update form data with payment status and reference info
+        // Update form data with payment status
       setFormData({
         ...formData,
         paymentDetails: {
           ...formData.paymentDetails,
-          status: paymentStatus === "Paid" ? "completed" : "pending",
-          ...(referenceInfo && {
-            committeeMember: { 
-              id: "custom", 
-              name: referenceInfo.committeeMember, 
-              designation: "Committee Member", 
-              phone: "" 
-            },
-            referredBy: referenceInfo.referredBy
-          })
+          status: paymentStatus === "Paid" ? "completed" : "pending"
         }
       });
       
