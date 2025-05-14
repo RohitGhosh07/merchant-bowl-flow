@@ -142,7 +142,7 @@ const Index = () => {
                 />
                 <div>
                   <h1 className="text-2xl md:text-3xl font-serif font-bold text-gray-800 text-center md:text-left">
-                    Merchants Cup
+                    38th Merchants Cup 2025-26
                   </h1>
                   <p className="text-sm text-gray-500 hidden md:block">RCGC Bowling Section</p>
                 </div>

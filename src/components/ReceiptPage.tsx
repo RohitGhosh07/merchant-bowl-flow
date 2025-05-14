@@ -45,7 +45,7 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
           <body>
             ${printContents}
             <div class="footer">
-              <p>RCGC Bowling Section | Merchants Cup 2025</p>
+              <p>RCGC Bowling Section | 38th Merchants Cup 2025-26</p>
               <p>For any queries, please contact the tournament committee.</p>
             </div>
           </body>
@@ -99,17 +99,16 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
         <div className="header flex items-center gap-4 mb-6">
           <img src="/logo.jpeg" alt="Merchant Cup Logo" className="w-16 h-16 rounded-lg" />
           <div>
-            <h1 className="text-2xl font-bold text-blue-800">Merchants Cup 2025</h1>
+            <h1 className="text-2xl font-bold text-blue-800">38th Merchants Cup 2025-26</h1>
             <p className="text-gray-600">RCGC Bowling Section</p>
           </div>
         </div>
 
         <div className="receipt-section">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Registration Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">            <div>
               <p className="text-sm text-gray-500">Registration Date</p>
-              <p className="font-medium">{formatDate(data.date)}</p>
+              <p className="font-medium">{formatDate(data.paymentDetails.paymentDate)}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Payment Status</p>
@@ -214,7 +213,7 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
 
         <div className="mt-6 border-t pt-4 text-center text-sm text-gray-600">
           <p>For any queries, please contact the tournament committee.</p>
-          <p className="mt-1">Thank you for participating in the Merchants Cup 2025!</p>
+          <p className="mt-1">Thank you for participating in the 38th Merchants Cup 2025-26!</p>
         </div>
       </div>
     </div>

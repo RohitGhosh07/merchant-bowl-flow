@@ -12,7 +12,7 @@ const queryClient = new QueryClient();
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename="/merchants_cup/">
         <TooltipProvider>
           <Routes>
             <Route path="/" element={<Index />} />

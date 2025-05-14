@@ -58,7 +58,7 @@ const Registrations = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <h1 className="text-2xl md:text-3xl font-serif font-bold text-center md:text-left mb-2 md:mb-0">
-              Merchants Cup
+              38th Merchants Cup 2025-26
             </h1>
             <div className="flex items-center gap-4">
               <h2 className="text-lg md:text-xl font-medium text-bowlsGold-light">

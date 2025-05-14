@@ -40,12 +40,9 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
       paymentDate: new Date().toISOString(),
     },
     captainName: "",
-    designation: "",
-    date: new Date().toISOString().split("T")[0],
-    signature: "",
-    rulesAccepted: false,
+    designation: "",    rulesAccepted: false,
     numTeams: 1,
-    totalAmount: 8850 // Price per team
+    totalAmount: 10030 // Fixed amount
   });
 
   const updateTeamMember = (

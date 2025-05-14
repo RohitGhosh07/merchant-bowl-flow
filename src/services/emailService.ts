@@ -32,14 +32,14 @@ const generateEmailHTML = (formData: FormData): string => {
     <body>
       <div class="container">
         <div class="header">
-          <h1>RCGC Merchants Cup Lawn Bowls Tournament 2024-25</h1>
+          <h1>RCGC 38th Merchants Cup Lawn Bowls Tournament 2025-26</h1>
           <p>Registration Confirmation</p>
         </div>
 
         <div class="content">
           <p>Dear ${formData.captainName},</p>
           
-          <p>Thank you for registering for the 37th RCGC Merchants Cup Lawn Bowls Tournament 2024-25. Your registration has been successfully processed.</p>
+          <p>Thank you for registering for the 38th RCGC Merchants Cup Lawn Bowls Tournament 2025-26. Your registration has been successfully processed.</p>
           
           <h2>Registration Details:</h2>
           <ul>

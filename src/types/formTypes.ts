@@ -36,10 +36,7 @@ export interface FormData {
   address: string;
   teams: Team[];
   captainName: string;
-  designation: string;
-  date: string;
-  signature?: string;
-  rulesAccepted: boolean;
+  designation: string;  rulesAccepted: boolean;
   numTeams: number;
   totalAmount: number;
   paymentDetails: PaymentDetails;

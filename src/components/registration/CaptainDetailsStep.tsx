@@ -23,8 +23,7 @@ const CaptainDetailsStep = ({ formData, handleInputChange }: CaptainDetailsStepP
           className="mt-1.5"
           required
         />
-      </div>
-      <div>
+      </div>      <div>
         <Label htmlFor="designation" className="text-gray-700 font-medium">Designation*</Label>
         <Input
           id="designation"
@@ -35,21 +34,6 @@ const CaptainDetailsStep = ({ formData, handleInputChange }: CaptainDetailsStepP
           className="mt-1.5"
           required
         />
-      </div>
-      <div>
-        <Label htmlFor="date" className="text-gray-700 font-medium">Date*</Label>
-        <div className="relative">
-          <Input
-            id="date"
-            name="date"
-            type="date"
-            value={formData.date}
-            onChange={handleInputChange}
-            className="mt-1.5"
-            required
-          />
-          <CalendarIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-        </div>
       </div>
     </div>
   );
