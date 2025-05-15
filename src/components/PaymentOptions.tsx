@@ -37,6 +37,7 @@ interface PaymentOptionsProps {
   amount: number;
   phoneNumber?: string;
   name?: string;
+  email?: string;
   rulesAccepted: boolean;
   onRulesAcceptedChange: (checked: boolean) => void;
   onCaptchaVerify: () => void;
@@ -47,6 +48,7 @@ export function PaymentOptions({
   amount, 
   phoneNumber,
   name,
+  email,
   rulesAccepted,
   onRulesAcceptedChange,
   onCaptchaVerify
@@ -56,7 +58,7 @@ export function PaymentOptions({
   const [selectedMember, setSelectedMember] = useState<string>('');
   const [transactionId, setTransactionId] = useState('');  // Handle payment redirection
   if (showPaymentRedirect && paymentMethod === 'online' && phoneNumber && rulesAccepted) {
-    return <PaymentRedirect amount={amount} phone={phoneNumber} name={name || "Guest"} />;
+    return <PaymentRedirect amount={amount} phone={phoneNumber} name={name || "Guest"} email={email} />;
   }
   const handlePaymentMethodChange = (value: string) => {
     const method = value as 'online' | 'offline';
@@ -132,7 +134,7 @@ export function PaymentOptions({
                 className="flex flex-col cursor-pointer p-4 rounded-lg border hover:bg-gray-50 transition-colors"
               >
                 <span className="font-medium">Offline Payment</span>
-                <span className="text-sm text-gray-500">Pay to Committee Member</span>
+                <span className="text-sm text-gray-500">Pay</span>
               </Label>
             </div>
           </RadioGroup>
