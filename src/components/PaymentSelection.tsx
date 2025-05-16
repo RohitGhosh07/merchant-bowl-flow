@@ -31,12 +31,13 @@ const PaymentSelection = ({ formData, onComplete }: PaymentSelectionProps) => {
   };
 
   const handleProceed = () => {
-    if (paymentMethod === 'online') {
-      // Redirect to the payment gateway
-      const name = encodeURIComponent(formData.companyName);
+    if (paymentMethod === 'online') {      // Redirect to the payment gateway
+      const name = encodeURIComponent(formData.captainName || formData.companyName);
       const phoneNumber = encodeURIComponent(formData.contactPhone);
+      const email = encodeURIComponent(formData.contactEmail);
+      const companyName = encodeURIComponent(formData.companyName);
       
-      window.location.href = `https://rcgcbooking.in/ccavenue_pg_v2/make_payment_merchant.php?organization_id=RCGC&name=${name}&phone_number=${phoneNumber}&amount=${fixedAmount}`;
+      window.location.href = `https://rcgcbooking.in/ccavenue_pg_v2/make_payment_merchant.php?organization_id=RCGC&name=${name}&phone_number=${phoneNumber}&amount=${fixedAmount}&email=${email}&company_name=${companyName}`;
     } else {
       // Handle offline payment
       if (!committeeMember) {

@@ -38,6 +38,7 @@ interface PaymentOptionsProps {
   phoneNumber?: string;
   name?: string;
   email?: string;
+  companyName?: string;
   rulesAccepted: boolean;
   onRulesAcceptedChange: (checked: boolean) => void;
   onCaptchaVerify: () => void;
@@ -49,6 +50,7 @@ export function PaymentOptions({
   phoneNumber,
   name,
   email,
+  companyName,
   rulesAccepted,
   onRulesAcceptedChange,
   onCaptchaVerify
@@ -56,10 +58,18 @@ export function PaymentOptions({
   const [showPaymentRedirect, setShowPaymentRedirect] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'offline'>('online');
   const [selectedMember, setSelectedMember] = useState<string>('');
-  const [transactionId, setTransactionId] = useState('');  // Handle payment redirection
+
+  // Handle payment redirection
   if (showPaymentRedirect && paymentMethod === 'online' && phoneNumber && rulesAccepted) {
-    return <PaymentRedirect amount={amount} phone={phoneNumber} name={name || "Guest"} email={email} />;
+    return <PaymentRedirect 
+      amount={amount} 
+      phone={phoneNumber} 
+      name={name || "Guest"} 
+      email={email || ""} 
+      companyName={companyName || ""} 
+    />;
   }
+
   const handlePaymentMethodChange = (value: string) => {
     const method = value as 'online' | 'offline';
     setPaymentMethod(method);
