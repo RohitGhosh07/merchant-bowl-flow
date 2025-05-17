@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FormData } from "@/types/formTypes";
@@ -8,39 +7,95 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { IndianRupee } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
 
 interface PaymentSelectionProps {
   formData: FormData;
-  onComplete: (paymentStatus: string, referenceInfo?: Record<string, string>) => void;
+  registrationId: string; // ID from tracking_id
+  onComplete: (paymentStatus: string, referenceInfo?: Record<string, any>) => void;
 }
 
-const PaymentSelection = ({ formData, onComplete }: PaymentSelectionProps) => {
+const PaymentSelection = ({ formData, registrationId, onComplete }: PaymentSelectionProps) => {
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'offline'>('online');
   const [committeeMember, setCommitteeMember] = useState<string>("");
   const [referredBy, setReferredBy] = useState<string>("");
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  // Fixed amount regardless of number of teams
   const fixedAmount = 10030;
 
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value as 'online' | 'offline');
   };
 
-  const handleProceed = () => {
-    if (paymentMethod === 'online') {      // Redirect to the payment gateway
-      const name = encodeURIComponent(formData.captainName || formData.companyName);
-      const phoneNumber = encodeURIComponent(formData.contactPhone);
-      const email = encodeURIComponent(formData.contactEmail);
-      const companyName = encodeURIComponent(formData.companyName);
+  const updatePaymentDetails = async (paymentInfo: any) => {
+    try {
+      // Map the payment info to match database columns
+      const dbUpdate = {
+        payment_method: paymentInfo.payment_method,
+        payment_status: paymentInfo.payment_status,
+        committee_member: paymentInfo.committee_member,
+        referred_name: paymentInfo.referred_name,
+        payment_date: paymentInfo.payment_date,
+        amount: paymentInfo.amount,
+        // Map other form data to database columns
+        captain_name: formData.captainName,
+        captain_phone: formData.contactPhone,
+        captain_email: formData.contactEmail,
+        company_name: formData.companyName,
+        contact_phone: formData.contactPhone,
+        contact_email: formData.contactEmail,
+        contact_address: formData.address,
+        captain_designation: formData.designation,
+        gst_number: formData.gstNumber
+      };
+
+      const { error } = await supabase
+        .from('registrations')
+        .update(dbUpdate)
+        .eq('id', registrationId); // Use tracking_id for updates
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error updating payment details:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update payment details. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const handleProceed = async () => {
+    if (paymentMethod === 'online') {
+      // For online payments, save referral info and update status to "Online"
+      const paymentInfo = {
+        payment_method: 'online',
+        payment_status: 'Online',
+        referred_name: referredBy || null,
+        payment_date: new Date().toISOString(),
+        amount: fixedAmount
+      };
       
-      window.location.href = `https://rcgcbooking.in/ccavenue_pg_v2/make_payment_merchant.php?organization_id=RCGC&name=${name}&phone_number=${phoneNumber}&amount=${fixedAmount}&email=${email}&company_name=${companyName}`;
+      try {
+        await updatePaymentDetails(paymentInfo);
+        await onComplete("Online", paymentInfo);
+          // After updating the database, redirect to payment gateway
+        const name = encodeURIComponent(formData.captainName || formData.companyName);
+        const phoneNumber = encodeURIComponent(formData.contactPhone);
+        const email = encodeURIComponent(formData.contactEmail);
+        const companyName = encodeURIComponent(formData.companyName);
+        
+        window.location.href = `https://rcgcbooking.in/ccavenue_pg_v2/make_payment_merchant.php?organization_id=RCGC&name=${name}&phone_number=${phoneNumber}&amount=${fixedAmount}&email=${email}&company_name=${companyName}`;
+      } catch (error) {
+        return;
+      }
     } else {
-      // Handle offline payment
-      if (!committeeMember) {
+      // For offline payments, require committee member name
+      if (!committeeMember.trim()) {
         toast({
           title: "Payment Information Required",
           description: "Please enter the name of the committee member you're paying to.",
@@ -49,13 +104,28 @@ const PaymentSelection = ({ formData, onComplete }: PaymentSelectionProps) => {
         return;
       }
 
-      // Mark the registration as unpaid/pending in Supabase
-      const referenceInfo = {
-        committeeMember: committeeMember,
-        referredBy: referredBy || "Not specified"
+      // Save offline payment details with committee member name and referral info
+      const paymentInfo = {
+        payment_method: 'offline',
+        payment_status: 'Pending',
+        committee_member: committeeMember.trim(),
+        referred_name: referredBy || null,
+        payment_date: new Date().toISOString(),
+        amount: fixedAmount
       };
       
-      onComplete("Pending", referenceInfo);
+      try {
+        await updatePaymentDetails(paymentInfo);
+        await onComplete("Pending", paymentInfo);
+        
+        toast({
+          title: "Success",
+          description: "Payment details saved successfully.",
+          variant: "default",
+        });
+      } catch (error) {
+        return;
+      }
     }
   };
 
@@ -97,11 +167,10 @@ const PaymentSelection = ({ formData, onComplete }: PaymentSelectionProps) => {
         </div>
 
         {paymentMethod === 'offline' && (
-          <div className="space-y-4 animate-in fade-in-50">
-            <div className="space-y-2">
+          <div className="space-y-4 animate-in fade-in-50">            <div className="space-y-2">
               <Label>Who are you paying to?</Label>
               <Input 
-                placeholder="Enter committee member's name" 
+                placeholder="Enter committee member's name"
                 value={committeeMember}
                 onChange={(e) => setCommitteeMember(e.target.value)}
               />
@@ -116,16 +185,27 @@ const PaymentSelection = ({ formData, onComplete }: PaymentSelectionProps) => {
               />
             </div>
           </div>
-        )}
+        )}        
 
         {paymentMethod === 'online' && (
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <h3 className="font-medium text-blue-800 mb-2">Online Payment Details</h3>
-            <div className="flex items-center gap-1 text-sm text-blue-600 mb-2">
-              <IndianRupee className="h-4 w-4" />
-              <span>{fixedAmount.toLocaleString()}</span>
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+              <h3 className="font-medium text-blue-800 mb-2">Online Payment Details</h3>
+              <div className="flex items-center gap-1 text-sm text-blue-600 mb-2">
+                <IndianRupee className="h-4 w-4" />
+                <span>{fixedAmount.toLocaleString()}</span>
+              </div>
+              <p className="text-sm text-blue-600">You will be redirected to the payment gateway.</p>
             </div>
-            <p className="text-sm text-blue-600">You will be redirected to the payment gateway.</p>
+            
+            <div className="space-y-2">
+              <Label>Who referred you? (Optional)</Label>
+              <Input 
+                placeholder="Enter name of the person who referred you"
+                value={referredBy}
+                onChange={(e) => setReferredBy(e.target.value)}
+              />
+            </div>
           </div>
         )}
 

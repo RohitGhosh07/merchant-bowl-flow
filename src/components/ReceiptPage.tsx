@@ -251,8 +251,7 @@ const ReceiptPage = ({ data }: ReceiptPageProps) => {
               <p className="text-sm text-gray-500">Total Amount</p>
               <p className="font-medium text-blue-600">₹{data.totalAmount.toLocaleString()}</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-500">Amount per Team</p>
+            <div>              <p className="text-sm text-gray-500">Amount per Team</p>
               <p className="font-medium">₹10,030</p>
             </div>
             <div>

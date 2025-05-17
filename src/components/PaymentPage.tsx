@@ -214,7 +214,7 @@ const PaymentPage = ({ formData, onPaymentComplete }: PaymentPageProps) => {
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-gray-500">Registration Fee</p>
-                <p className="font-medium">₹10,030 fixed amount</p>
+                <p className="font-medium">₹10 fixed amount</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Amount</p>

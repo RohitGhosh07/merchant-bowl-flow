@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import RegistrationForm from "@/components/RegistrationForm";
 import { FormData } from "@/types/formTypes";
 import { Button } from "@/components/ui/button";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Lock } from "lucide-react";
+import AdminDialog from "@/components/admin/AdminDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ReceiptPage from "@/components/ReceiptPage";
@@ -19,72 +19,46 @@ const rcgcLogoPath = import.meta.env.BASE_URL + 'rcgc.jpeg';
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState<"form" | "payment" | "receipt">("form");
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [formData, setFormData] = useState<FormData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  
   // Fixed amount regardless of number of teams
   const fixedAmount = 10030;
-
   const handleFormSubmit = async (data: FormData) => {
-    // Ensure the total amount is set to the fixed amount
-    const updatedData = {
-      ...data,
-      totalAmount: fixedAmount
-    };
-    
-    setFormData(updatedData);
-    // Move to the payment selection page
-    setCurrentStep("payment");
-    window.scrollTo(0, 0);
-  };
-
-  const handlePaymentComplete = async (paymentStatus: string, referenceInfo?: Record<string, string>) => {
-    if (!formData) return;
-    
     setIsProcessing(true);
-    
     try {
-      toast({
-        title: "Processing Registration",
-        description: "Please wait while we process your registration...",
-      });
-
       const tracking_id = await generateTrackingId();
       
-      const registrationPromises = formData.teams.map(async (team, i) => {
+      // First save to database with pending status
+      const registrationPromises = data.teams.map(async (team, i) => {
         const teamNumber = `Team ${i + 1}`;
         
         try {
           const { error } = await supabase.from("registrations").insert({
             id: tracking_id,
-            company_name: formData.companyName,
+            company_name: data.companyName,
             team_number: teamNumber,
             player1_name: team.player1.name,
             player2_name: team.player2.name,
-            player3_name: team.player3.name,
-            player1_mobile: team.player1.mobile,
-            player2_mobile: team.player2.mobile,
-            player3_mobile: team.player3.mobile,
+            player3_name: team.player3.name || null,
+            player1_mobile: team.player1.mobile || null,
+            player2_mobile: team.player2.mobile || null,
+            player3_mobile: team.player3.mobile || null,
             player1_email: team.player1.email || null,
             player2_email: team.player2.email || null,
             player3_email: team.player3.email || null,
-            captain_name: formData.captainName,
-            captain_phone: formData.contactPhone,
-            captain_email: formData.contactEmail,
-            payment_status: paymentStatus,
-            payment_method: paymentStatus === "Paid" ? "online" : "offline",
-            payment_reference: referenceInfo?.transactionId || null,
-            payment_date: paymentStatus === "Paid" ? new Date().toISOString() : null,
-            amount: formData.totalAmount,
-            gst_number: formData.gstNumber || null,
-            committee_member: formData.paymentDetails?.committeeMember?.name || null,
+            captain_name: data.captainName,
+            captain_phone: data.contactPhone,
+            captain_email: data.contactEmail,
+            payment_status: "Pending",
+            amount: fixedAmount,
+            gst_number: data.gstNumber || null,
             registration_status: "active",
-            contact_phone: formData.contactPhone,
-            contact_email: formData.contactEmail,
-            contact_address: formData.address,
-            captain_designation: formData.designation,
-            timestamp: new Date().toISOString()
+            contact_phone: data.contactPhone,
+            contact_email: data.contactEmail,
+            contact_address: data.address,
+            captain_designation: data.designation
           });
           
           if (error) {
@@ -100,39 +74,104 @@ const Index = () => {
       });
 
       await Promise.all(registrationPromises);
+      
+      // After successful database save, update form data and move to payment
+      const updatedData = {
+        ...data,
+        totalAmount: fixedAmount,
+        tracking_id: tracking_id
+      };
+      
+      setFormData(updatedData);
+      setCurrentStep("payment");
+      window.scrollTo(0, 0);
 
+      toast({
+        title: "Registration Saved",
+        description: "Your registration has been saved. Please proceed with payment.",
+      });
+    } catch (error) {
+      console.error("Error saving registration:", error);
+      toast({
+        title: "Registration Error",
+        description: "There was an error saving your registration. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };  const handlePaymentComplete = async (paymentStatus: string, referenceInfo?: Record<string, any>) => {
+    if (!formData || !formData.tracking_id) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      toast({
+        title: "Processing Payment",
+        description: "Please wait while we update your payment status...",
+      });
+        // Create an update object with all the relevant fields
+      const updateObj: any = {
+        payment_status: paymentStatus,
+        payment_method: paymentStatus === "Online" ? "online" : "offline",
+        referred_name: referenceInfo?.referredBy || null,
+        payment_date: paymentStatus === "Online" ? new Date().toISOString() : null
+      };      // For offline payments, include committee member
+      if (paymentStatus === "Pending" && referenceInfo?.committee_member) {
+        // Save committee member's name directly
+        updateObj.committee_member = referenceInfo.committee_member;
+      }
+
+      // Update all fields in Supabase
+      const { error } = await supabase
+        .from("registrations")
+        .update(updateObj)
+        .eq('id', formData.tracking_id);
+      
+      if (error) {
+        console.error("Error updating payment status:", error);
+        throw error;
+      }
+
+      // Try to send confirmation email
       try {
-        await sendRegistrationEmail({ ...formData, tracking_id });
+        await sendRegistrationEmail(formData);
       } catch (emailError) {
         console.error("Error sending confirmation emails:", emailError);
         toast({
           title: "Email Delivery Issue",
-          description: "Registration is complete, but there was an issue sending the confirmation email. Your tracking ID is: " + tracking_id,
+          description: "Registration is complete, but there was an issue sending the confirmation email. Your tracking ID is: " + formData.tracking_id,
           variant: "warning",
         });
       }
       
+      // Update local form data with payment details
       setFormData({
         ...formData,
-        tracking_id,
         paymentDetails: {
-          ...formData.paymentDetails,
-          status: paymentStatus === "Paid" ? "completed" : "pending"
+          ...formData.paymentDetails,          status: paymentStatus === "Paid" ? "completed" : "pending",
+          committeeMember: paymentStatus === "Pending" && referenceInfo?.committeeMember ? 
+            committeeMembers.find(member => member.name === referenceInfo.committeeMember) || undefined : undefined,
+          referredBy: referenceInfo?.referredBy || undefined
         }
       });
-      
+
       toast({
         title: "Registration Successful",
-        description: `Your registration is complete! Your tracking ID is: ${tracking_id}. ${
-          paymentStatus === "Paid"
-            ? "Payment has been completed successfully."
+        description: `Your registration is complete! Your tracking ID is: ${formData.tracking_id}. ${
+          paymentStatus === "Online"
+            ? "You will now be redirected to complete the payment."
             : "Please complete the payment with the selected committee member."
         }`,
         variant: "success"
       });
       
-      setCurrentStep("receipt");
-      window.scrollTo(0, 0);
+      // For offline payments, move to receipt page
+      if (paymentStatus === "Pending") {
+        setCurrentStep("receipt");
+        window.scrollTo(0, 0);
+      }
+      // For online payments, the redirect will happen in PaymentSelection component
     } catch (error) {
       console.error("Registration processing error:", error);
       
@@ -202,11 +241,11 @@ const Index = () => {
             <RegistrationForm onSubmit={handleFormSubmit} isProcessing={isProcessing} />
           </div>
         )}
-        
-        {currentStep === "payment" && formData && (
+          {currentStep === "payment" && formData && (
           <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
             <PaymentSelection 
               formData={formData} 
+              registrationId={formData.tracking_id}
               onComplete={handlePaymentComplete} 
             />
           </div>
@@ -224,14 +263,26 @@ const Index = () => {
             <span>Connected to database</span>
           </div>
         </div>
-      </main>
-
-      <footer className="bg-bowlsNavy text-white py-6 mt-8">
+      </main>      <footer className="bg-bowlsNavy text-white py-6 mt-8">
         <div className="container mx-auto px-4 text-center">
-          <p>RCGC Bowling Section</p>          <p className="mt-2 text-sm text-gray-300">
+          <p>RCGC Bowling Section</p>
+          <p className="mt-2 text-sm text-gray-300">
             Venue: RCGC Maidan Tent | Tournament Starts: June 15, 2025
           </p>
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAdminOpen(true)}
+              className="bg-transparent text-white border-white hover:bg-white hover:text-bowlsNavy transition-colors"
+            >
+              <Lock className="w-4 h-4 mr-2" />
+              Admin Access
+            </Button>
+          </div>
         </div>
+
+        <AdminDialog open={isAdminOpen} onOpenChange={setIsAdminOpen} />
       </footer>
     </div>
   );

@@ -22,8 +22,7 @@ const TeamDetailsStep = ({
   updateTeamMember 
 }: TeamDetailsStepProps) => {
   const { toast } = useToast();
-  
-  // Fixed amount regardless of number of teams
+    // Fixed amount regardless of number of teams
   const fixedAmount = 10030;
 
   const addTeam = () => {
@@ -106,8 +105,7 @@ const TeamDetailsStep = ({
       )}
 
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-        <p className="text-gray-700 text-sm mb-2">
-          Registration Fee: <span className="font-bold">₹10,030/-</span>
+        <p className="text-gray-700 text-sm mb-2">          Registration Fee: <span className="font-bold">₹10,030/-</span>
         </p>
         <p className="text-gray-700 font-bold">
           Total Amount: ₹{formData.totalAmount.toLocaleString()}/-

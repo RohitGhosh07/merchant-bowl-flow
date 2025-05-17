@@ -1,12 +1,8 @@
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import Registrations from "./pages/Registrations";
-import Admin from "./pages/Admin";
-import AdminDashboard from "./components/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import TrackRegistration from "./pages/TrackRegistration";
 
@@ -19,14 +15,10 @@ export default function App() {
         <TooltipProvider>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/track" element={<TrackRegistration />} />
-            <Route path="/registrations" element={<Registrations />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/track-registration" element={<TrackRegistration />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />
-          <Sonner />
         </TooltipProvider>
       </BrowserRouter>
     </QueryClientProvider>

@@ -32,11 +32,9 @@ const RegistrationForm = ({ onSubmit, isProcessing = false }: RegistrationFormPr
         player2: { name: "", mobile: "", email: "", role: "player" },
         player3: { name: "", mobile: "", email: "", role: "player" }
       }
-    ],
-    paymentDetails: {
-      method: "online",
+    ],    paymentDetails: {      method: "online",
       status: "completed", // Changed to completed to fix TypeScript error
-      amount: 8850,
+      amount: 10030,
       paymentDate: new Date().toISOString(),
     },
     captainName: "",
