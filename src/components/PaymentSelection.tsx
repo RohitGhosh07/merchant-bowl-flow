@@ -13,7 +13,7 @@ import React from 'react';
 
 interface PaymentSelectionProps {
   formData: FormData;
-  registrationId: string; // ID from tracking_id
+  registrationId: string;
   onComplete: (paymentStatus: string, referenceInfo?: Record<string, any>) => void;
 }
 
@@ -30,15 +30,15 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({ formData, registrat
   };
   const updatePaymentDetails = async (paymentInfo: any) => {
     try {
-      // Map the payment info to match database columns
+      console.log('Sending payment update:', { paymentInfo, registrationId });
+      
       const dbUpdate = {
         payment_method: paymentInfo.payment_method,
         payment_status: paymentInfo.payment_status,
-        committee_member: paymentInfo.committee_member,
-        referred_name: paymentInfo.referred_name,
+        committee_member: paymentInfo.committee_member || '',
+        referred_name: paymentInfo.referred_name || '',
         payment_date: paymentInfo.payment_date,
         amount: paymentInfo.amount,
-        // Map other form data to database columns
         captain_name: formData.captainName,
         captain_phone: formData.contactPhone,
         captain_email: formData.contactEmail,
@@ -50,39 +50,52 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({ formData, registrat
         gst_number: formData.gstNumber
       };
 
+      console.log('Database update payload:', dbUpdate);      console.log('Sending update to Supabase:', { dbUpdate, registrationId });
+      
       const { error } = await supabase
         .from('registrations')
         .update(dbUpdate)
-        .eq('id', registrationId); // Use tracking_id for updates
+        .eq('id', registrationId);
 
       if (error) {
+        console.error('Supabase error:', error);
         throw error;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating payment details:', error);
       toast({
         title: "Error",
-        description: "Failed to update payment details. Please try again.",
+        description: error.message || "Failed to update payment details. Please try again.",
         variant: "destructive",
       });
       throw error;
     }
   };
 
-  const handleProceed = async () => {    if (paymentMethod === 'online') {
-      // For online payments, save referral info and update status to "Online"
+  const handleProceed = async () => {    if (paymentMethod === 'online') {      // For online payments, set status to Pending
       const paymentInfo = {
         payment_method: 'online',
-        payment_status: 'Online',
-        referred_name: referredBy,  // Pass the referred name directly
+        payment_status: 'Pending',
+        committee_member: '',
+        referred_name: referredBy,
         payment_date: new Date().toISOString(),
         amount: fixedAmount
       };
       
       try {
+        // First save to database
         await updatePaymentDetails(paymentInfo);
-        await onComplete("Online", paymentInfo);
-          // After updating the database, redirect to payment gateway
+        
+        // Show success message for database update
+        toast({
+          title: "Referral Info Saved",
+          description: "Your referral information has been saved successfully.",
+        });
+
+        // Then call onComplete
+        await onComplete("Pending", paymentInfo);
+        
+        // Only redirect after successful database update
         const name = encodeURIComponent(formData.captainName || formData.companyName);
         const phoneNumber = encodeURIComponent(formData.contactPhone);
         const email = encodeURIComponent(formData.contactEmail);
@@ -90,6 +103,11 @@ const PaymentSelection: React.FC<PaymentSelectionProps> = ({ formData, registrat
         
         window.location.href = `https://rcgcbooking.in/ccavenue_pg_v2/make_payment_merchant.php?organization_id=RCGC&name=${name}&phone_number=${phoneNumber}&amount=${fixedAmount}&email=${email}&company_name=${companyName}`;
       } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to save referral information. Please try again.",
+          variant: "destructive",
+        });
         return;
       }
     } else {
