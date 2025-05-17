@@ -109,14 +109,13 @@ const Index = () => {
       toast({
         title: "Processing Payment",
         description: "Please wait while we update your payment status...",
-      });
-        // Create an update object with all the relevant fields
+      });        // Create an update object with all the relevant fields
       const updateObj: any = {
         payment_status: paymentStatus,
         payment_method: paymentStatus === "Online" ? "online" : "offline",
-        referred_name: referenceInfo?.referredBy || null,
+        referred_name: referenceInfo?.referred_name || null,  // Match the database column name
         payment_date: paymentStatus === "Online" ? new Date().toISOString() : null
-      };      // For offline payments, include committee member
+      };// For offline payments, include committee member
       if (paymentStatus === "Pending" && referenceInfo?.committee_member) {
         // Save committee member's name directly
         updateObj.committee_member = referenceInfo.committee_member;

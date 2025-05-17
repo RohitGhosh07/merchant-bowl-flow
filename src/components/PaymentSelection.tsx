@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { IndianRupee } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
+import React from 'react';
 
 interface PaymentSelectionProps {
   formData: FormData;
@@ -16,7 +17,7 @@ interface PaymentSelectionProps {
   onComplete: (paymentStatus: string, referenceInfo?: Record<string, any>) => void;
 }
 
-const PaymentSelection = ({ formData, registrationId, onComplete }: PaymentSelectionProps) => {
+const PaymentSelection: React.FC<PaymentSelectionProps> = ({ formData, registrationId, onComplete }) => {
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'offline'>('online');
   const [committeeMember, setCommitteeMember] = useState<string>("");
   const [referredBy, setReferredBy] = useState<string>("");
@@ -27,7 +28,6 @@ const PaymentSelection = ({ formData, registrationId, onComplete }: PaymentSelec
   const handlePaymentMethodChange = (value: string) => {
     setPaymentMethod(value as 'online' | 'offline');
   };
-
   const updatePaymentDetails = async (paymentInfo: any) => {
     try {
       // Map the payment info to match database columns
@@ -69,13 +69,12 @@ const PaymentSelection = ({ formData, registrationId, onComplete }: PaymentSelec
     }
   };
 
-  const handleProceed = async () => {
-    if (paymentMethod === 'online') {
+  const handleProceed = async () => {    if (paymentMethod === 'online') {
       // For online payments, save referral info and update status to "Online"
       const paymentInfo = {
         payment_method: 'online',
         payment_status: 'Online',
-        referred_name: referredBy || null,
+        referred_name: referredBy,  // Pass the referred name directly
         payment_date: new Date().toISOString(),
         amount: fixedAmount
       };
@@ -109,7 +108,7 @@ const PaymentSelection = ({ formData, registrationId, onComplete }: PaymentSelec
         payment_method: 'offline',
         payment_status: 'Pending',
         committee_member: committeeMember.trim(),
-        referred_name: referredBy || null,
+        referred_name: referredBy,  // Pass the referred name directly
         payment_date: new Date().toISOString(),
         amount: fixedAmount
       };
