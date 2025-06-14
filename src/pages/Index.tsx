@@ -271,11 +271,7 @@ const Index = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white/70 rounded-lg p-4 border border-red-200">
-                    <Calendar className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                    <h4 className="font-semibold text-gray-800">Tournament Dates</h4>
-                    <p className="text-sm text-gray-600 mt-1">June 15 - July 15, 2025</p>
-                  </div>
+
                   <div className="bg-white/70 rounded-lg p-4 border border-red-200">
                     <MapPin className="w-8 h-8 text-green-600 mx-auto mb-2" />
                     <h4 className="font-semibold text-gray-800">Venue</h4>
@@ -283,85 +279,11 @@ const Index = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link to="/track-registration">
-                    <Button variant="outline" className="w-full sm:w-auto border-blue-600 text-blue-600 hover:bg-blue-50">
-                      Track Existing Registration
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsAdminOpen(true)}
-                    className="w-full sm:w-auto border-gray-600 text-gray-600 hover:bg-gray-50"
-                  >
-                    <Lock className="w-4 h-4 mr-2" />
-                    Admin Access
-                  </Button>
-                </div>
+                
               </CardContent>
             </Card>
 
-            {/* Tournament Information Card */}
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-blue-800 text-center">
-                  Tournament Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Users className="w-8 h-8 text-blue-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-800 mb-2">Registered Teams</h3>
-                    <p className="text-2xl font-bold text-blue-600">64</p>
-                    <p className="text-sm text-gray-600">Teams Participating</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <Calendar className="w-8 h-8 text-green-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-800 mb-2">Tournament Duration</h3>
-                    <p className="text-2xl font-bold text-green-600">30</p>
-                    <p className="text-sm text-gray-600">Days of Competition</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <MapPin className="w-8 h-8 text-purple-600" />
-                    </div>
-                    <h3 className="font-semibold text-gray-800 mb-2">Venue</h3>
-                    <p className="text-lg font-bold text-purple-600">RCGC</p>
-                    <p className="text-sm text-gray-600">Maidan Tent</p>
-                  </div>
-                </div>
-
-                <div className="bg-white/70 rounded-lg p-6 border border-blue-200">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                    For Registered Teams
-                  </h3>
-                  <ul className="space-y-2 text-gray-700">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      Tournament schedule will be shared via email
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      Practice sessions begin April 22, 2025
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      Team briefing on June 10, 2025
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      Gala dinner and prize distribution on July 20, 2025
-                    </li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-
+            
             {/* Contact Information Card */}
             <Card className="bg-gradient-to-br from-gray-50 to-slate-50 border-gray-200">
               <CardHeader>
@@ -375,8 +297,7 @@ const Index = () => {
                 </p>
                 <div className="space-y-2">
                   <p className="font-semibold text-gray-800">RCGC Tournament Committee</p>
-                  <p className="text-gray-600">Email: tournament@rcgc.in</p>
-                  <p className="text-gray-600">Phone: +91 98765 43210</p>
+                  
                 </div>
               </CardContent>
             </Card>
